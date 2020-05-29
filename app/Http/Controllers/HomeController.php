@@ -594,9 +594,6 @@ class HomeController extends Controller
                             DB::COMMIT();
                         } catch (\Illuminate\Database\QueryException $exception) {
                             DB::rollBack();
-
-
-                            return $exception;
                         }
                     } else {
                         return "The Album does not belong to the artist";
@@ -693,53 +690,65 @@ class HomeController extends Controller
                 DB::ROLLBACK();
             }
         } else if ($deletingRequest == 'album') {
-            $artist_name_formated = $request->get('artist');
-            $album_name_formated = $request->get('album');
+            DB::beginTransaction();
+            try {
+                $artist_name_formated = $request->get('artist');
+                $album_name_formated = $request->get('album');
 
-            //        Check if the album belongs
-            $album_belong = DB::table('album')
-                ->join('artist', 'album.artistid', '=', 'artist.artistid')
-                ->where('album.title', $album_name_formated)
-                ->where('artist.name', $artist_name_formated)
-                ->count();
+                //        Check if the album belongs
+                $album_belong = DB::table('album')
+                    ->join('artist', 'album.artistid', '=', 'artist.artistid')
+                    ->where('album.title', $album_name_formated)
+                    ->where('artist.name', $artist_name_formated)
+                    ->count();
 
-            if ($album_belong < 1) return 'Album doesn\'t exist!';
+                if ($album_belong < 1) return 'Album doesn\'t exist!';
 
-            //        Get the album id to delete all the tracks
-            $id_album = DB::table('album')
-                ->join('artist', 'album.artistid', '=', 'artist.artistid')
-                ->where('album.title', $album_name_formated)
-                ->where('artist.name', $artist_name_formated)
-                ->first();
-            $id_album = $id_album->albumid;
+                //        Get the album id to delete all the tracks
+                $id_album = DB::table('album')
+                    ->join('artist', 'album.artistid', '=', 'artist.artistid')
+                    ->where('album.title', $album_name_formated)
+                    ->where('artist.name', $artist_name_formated)
+                    ->first();
+                $id_album = $id_album->albumid;
 
-            DB::table('track')->where('albumid', $id_album)->delete();
-            DB::table('album')->where('title', $album_name_formated)->delete();
+                DB::table('track')->where('albumid', $id_album)->delete();
+                DB::table('album')->where('title', $album_name_formated)->delete();
+                DB::commit();
+            } catch (\Illuminate\Database\QueryException $exception) {
+                DB::rollback();
+            }
         } else if ($deletingRequest == 'cancion') {
-            //        Decode URLs
-            $artist_name_formated = $request->get('artist');
-            $album_name_formated = $request->get('album');
-            $track_name_formated = $request->get('track');
+            DB::beginTransaction();
+            try {
+                //        Decode URLs
+                $artist_name_formated = $request->get('artist');
+                $album_name_formated = $request->get('album');
+                $track_name_formated = $request->get('track');
 
-            //        Instantiate the table
-            $trackTable = DB::table('track');
+                //        Instantiate the table
+                $trackTable = DB::table('track');
 
-            //        Check if track exists
-            $trackExists = DB::table('track')->where('name', $track_name_formated)
-                ->count();
-            //        Check if track belongs to Artist
-            $trackBelongs = DB::table('track')
-                ->join('album', 'track.albumid', '=', 'album.albumid')
-                ->join('artist', 'album.artistid', '=', 'artist.artistid')
-                ->where('track.name', $track_name_formated)
-                ->where('album.title', $album_name_formated)
-                ->where('artist.name', $artist_name_formated)
-                ->count();
+                //        Check if track exists
+                $trackExists = DB::table('track')->where('name', $track_name_formated)
+                    ->count();
+                //        Check if track belongs to Artist
+                $trackBelongs = DB::table('track')
+                    ->join('album', 'track.albumid', '=', 'album.albumid')
+                    ->join('artist', 'album.artistid', '=', 'artist.artistid')
+                    ->where('track.name', $track_name_formated)
+                    ->where('album.title', $album_name_formated)
+                    ->where('artist.name', $artist_name_formated)
+                    ->count();
 
-            if ($trackBelongs < 1) return [$artist_name_formated, $album_name_formated, $track_name_formated];
-            //        Delete Track
-            $trackTable->where('name', '=', $track_name_formated)
-                ->delete();
+                if ($trackBelongs < 1) return [$artist_name_formated, $album_name_formated, $track_name_formated];
+                //        Delete Track
+                $trackTable->where('name', '=', $track_name_formated)
+                    ->delete();
+                DB::commit();
+            } catch (\Illuminate\Database\QueryException $exception) {
+                DB::rollBack();
+            }
         }
         return redirect()->action('HomeController@profile');
     }
@@ -748,86 +757,121 @@ class HomeController extends Controller
     {
         $updateRequest = $request->get('select_category');
         if ($updateRequest == 'artist') {
-            $old_artist = $request->get('oldArtist');
-            $artist_name_formated = $request->get('newArtist');
+            DB::beginTransaction();
+            try {
+                $old_artist = $request->get('oldArtist');
+                $artist_name_formated = $request->get('newArtist');
 
 
-            $user = Auth::user();
-            $username = $user->name;
-            $userQuery = DB::table('users')
-                ->join('roles_relations', 'users.id', '=', 'roles_relations.id_user')
-                ->where('users.name', $username)->first();
-            $userRole = $userQuery->id_roles;
-            if ($userRole != 1) return view('Error405');
+                $user = Auth::user();
+                $username = $user->name;
+                $userQuery = DB::table('users')
+                    ->join('roles_relations', 'users.id', '=', 'roles_relations.id_user')
+                    ->where('users.name', $username)->first();
+                $userRole = $userQuery->id_roles;
+                if ($userRole != 1) return view('Error405');
 
-            $artistGetter = DB::table('artist')->where('name', $old_artist)->first();
-            $artistGetter = $artistGetter->artistid;
+                $artistGetter = DB::table('artist')->where('name', $old_artist)->first();
+                $artistGetter = $artistGetter->artistid;
 
-            $mod_table = new modification();
-            $userid = $user->id;
-            $mod_table->modification_type = 2;  // 1 = Deletion ; 2 = Update; 3 = Creation
-            $mod_table->modified_type = 3;      // 1 = Track; 2 = Album; 3 = Artist
-            $mod_table->modified_id = $artistGetter;
-            $mod_table->user_id = $userid;
-            $mod_table->save();
+                $mod_table = new modification();
+                $userid = $user->id;
+                $mod_table->modification_type = 2;  // 1 = Deletion ; 2 = Update; 3 = Creation
+                $mod_table->modified_type = 3;      // 1 = Track; 2 = Album; 3 = Artist
+                $mod_table->modified_id = $artistGetter;
+                $mod_table->user_id = $userid;
+                $mod_table->save();
 
-            DB::table('artist')->where('name', $old_artist)->update([
-                'name' => $artist_name_formated
-            ]);
+                DB::table('artist')->where('name', $old_artist)->update([
+                    'name' => $artist_name_formated
+                ]);
+            } catch (\Illuminate\Database\QueryException $exception) {
+                DB::rollback();
+            }
         } else if ($updateRequest == 'album') {
-            $artist_name_formated = $request->get('artist');
-            $album_name_formated = $request->get('oldAlbum');
-            $album_new_name_formated = $request->get('newAlbum');
+            DB::beginTransaction();
+            try {
+                $artist_name_formated = $request->get('artist');
+                $album_name_formated = $request->get('oldAlbum');
+                $album_new_name_formated = $request->get('newAlbum');
 
-            $user = Auth::user();
-            $username = $user->name;
-            $userQuery = DB::table('users')
-                ->join('roles_relations', 'users.id', '=', 'roles_relations.id_user')
-                ->where('users.name', $username)->first();
-            $userRole = $userQuery->id_roles;
-            if ($userRole != 1) return view('Error405');
+                $user = Auth::user();
+                $username = $user->name;
+                $userQuery = DB::table('users')
+                    ->join('roles_relations', 'users.id', '=', 'roles_relations.id_user')
+                    ->where('users.name', $username)->first();
+                $userRole = $userQuery->id_roles;
+                if ($userRole != 1) return view('Error405');
 
 
-            $albumGetter = DB::table('album')->where('artist.name', $artist_name_formated)->where('album.title', $album_name_formated)->first();
-            $albumGetter = $albumGetter->albumid;
+                $albumGetter = DB::table('album')->where('artist.name', $artist_name_formated)->where('album.title', $album_name_formated)->first();
+                $albumGetter = $albumGetter->albumid;
 
-            $mod_table = new modification();
-            $userid = $user->id;
-            $mod_table->modification_type = 2;  // 1 = Deletion ; 2 = Update; 3 = Creation
-            $mod_table->modified_type = 2;      // 1 = Track; 2 = Album; 3 = Artist
-            $mod_table->modified_id = $albumGetter;
-            $mod_table->user_id = $userid;
-            $mod_table->save();
+                $mod_table = new modification();
+                $userid = $user->id;
+                $mod_table->modification_type = 2;  // 1 = Deletion ; 2 = Update; 3 = Creation
+                $mod_table->modified_type = 2;      // 1 = Track; 2 = Album; 3 = Artist
+                $mod_table->modified_id = $albumGetter;
+                $mod_table->user_id = $userid;
+                $mod_table->save();
 
-            DB::table('album')
-                ->join('artist', 'album.artistid', '=', 'artist.artistid')
-                ->where('artist.name', $artist_name_formated)->where('album.title', $album_name_formated)->update([
-                    'album.title' => $album_new_name_formated
-                ]);
+                DB::table('album')
+                    ->join('artist', 'album.artistid', '=', 'artist.artistid')
+                    ->where('artist.name', $artist_name_formated)->where('album.title', $album_name_formated)->update([
+                        'album.title' => $album_new_name_formated
+                    ]);
+                DB::commit();
+            } catch (\Illuminate\Database\QueryException $exception) {
+                DB::rollback();
+            }
         } else if ($updateRequest == 'cancion') {
-            $artist_formated = $request->get('artist');
-            $AlbumFormated = $request->get('album');
-            $oldTrackFormated = $request->get('oldTrack');
-            $newTrackFormated = $request->get('newTrack');
+            DB::beginTransaction();
+            try {
+                $artist_formated = $request->get('artist');
+                $AlbumFormated = $request->get('album');
+                $oldTrackFormated = $request->get('oldTrack');
+                $newTrackFormated = $request->get('newTrack');
 
-            $user = Auth::user();
-            $username = $user->name;
-            $userQuery = DB::table('users')
-                ->join('roles_relations', 'users.id', '=', 'roles_relations.id_user')
-                ->where('users.name', $username)->first();
-            $userRole = $userQuery->id_roles;
-            if ($userRole != 1) return view('Error405');
+                $user = Auth::user();
+                $username = $user->name;
+                $userQuery = DB::table('users')
+                    ->join('roles_relations', 'users.id', '=', 'roles_relations.id_user')
+                    ->where('users.name', $username)->first();
+                $userRole = $userQuery->id_roles;
+                if ($userRole != 1) return view('Error405');
+
+                $idGetter = DB::table('track')
+                    ->join('album', 'album.albumid', '=', 'track.albumid')
+                    ->join('artist', 'artist.artistid', '=', 'album.artistid')
+                    ->where('artist.name', $artist_formated)
+                    ->where('album.title', $AlbumFormated)
+                    ->where('track.name', $oldTrackFormated)->first();
+
+                $idGetter = $idGetter->trackid;
+
+                $mod_table = new modification();
+                $userid = $user->id;
+                $mod_table->modification_type = 2;  // 1 = Deletion ; 2 = Update; 3 = Creation
+                $mod_table->modified_type = 1;      // 1 = Track; 2 = Album; 3 = Artist
+                $mod_table->modified_id = $idGetter;
+                $mod_table->user_id = $userid;
+                $mod_table->save();
 
 
-            $checker = DB::table('track')
-                ->join('album', 'album.albumid', '=', 'track.albumid')
-                ->join('artist', 'artist.artistid', '=', 'album.artistid')
-                ->where('artist.name', $artist_formated)
-                ->where('album.title', $AlbumFormated)
-                ->where('track.name', $oldTrackFormated)
-                ->update([
-                    'track.name' => $newTrackFormated
-                ]);
+                $checker = DB::table('track')
+                    ->join('album', 'album.albumid', '=', 'track.albumid')
+                    ->join('artist', 'artist.artistid', '=', 'album.artistid')
+                    ->where('artist.name', $artist_formated)
+                    ->where('album.title', $AlbumFormated)
+                    ->where('track.name', $oldTrackFormated)
+                    ->update([
+                        'track.name' => $newTrackFormated
+                    ]);
+
+                DB::commit();
+            } catch (\Illuminate\Database\QueryException $exception) {
+                DB::rollback();
+            }
         }
         return redirect()->action('HomeController@profile');
     }
