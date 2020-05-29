@@ -959,4 +959,59 @@ class HomeController extends Controller
         }
         return redirect()->action('HomeController@profile');
     }
+
+    public function deleteSomething(Request $request)
+    {
+        $deletingRequest = $request->get('select_category');
+        if ($deletingRequest == 'artist') {
+            $artist_name_formated = $request->get('artist');
+
+            //        Check if the artist exists
+            $artistExists = DB::table('artist')
+                ->where('name', $artist_name_formated)
+                ->count();
+
+            if ($artistExists < 1) return 'This artist does not exist! (Check your caps)';
+            //        Get the table that has all the tracks
+            $tracks = DB::table('artist')
+                ->join('album', 'artist.artistid', '=', 'album.artistid')
+                ->join('track', 'album.albumid', '=', 'track.albumid')
+                ->where('artist.name', $artist_name_formated)
+                ->get();
+            //        Get the table that has all the albums
+            $albums = DB::table('artist')
+                ->join('album', 'artist.artistid', '=', 'album.artistid')
+                ->where('artist.name', $artist_name_formated)
+                ->get();
+
+            //        Get the table with the artist name
+
+
+            $track_table = DB::table('track');
+            $album_table = DB::table('album');
+            $artist_table = DB::table('artist');
+
+            DB::beginTransaction();
+            try {
+                foreach ($tracks as $track) {
+                    $id = $track->trackid;
+                    $track_table->where('trackid', $id)->delete();
+                }
+
+                foreach ($albums as $album) {
+                    $id = $album->albumid;
+                    $album_table->where('albumid', $id)->delete();
+                }
+
+                DB::table('artist')
+                    ->where('name', $artist_name_formated)->delete();
+                DB::commit();
+            } catch (\Illuminate\Database\QueryException $exception) {
+                DB::ROLLBACK();
+            }
+        } else if ($deletingRequest == 'album') {
+        } else if ($deletingRequest == 'cancion') {
+        }
+        return redirect()->action('HomeController@profile');
+    }
 }

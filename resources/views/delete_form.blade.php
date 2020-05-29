@@ -1,27 +1,28 @@
 @extends('sub_main')
 
 @section('PageTitle')
-    Delete Page
+Delete Page
 @endsection
 
 @section('style')
-    #deletionCategory {
-    margin: 16px;
-    border: 0px;
-    font-size: xx-large;
-    position: relative;
-    text-align: center;
-    left: 18%;
-    }
+#deletionCategory {
+margin: 16px;
+border: 0px;
+font-size: xx-large;
+position: relative;
+text-align: center;
+left: 18%;
+}
 @endsection
 
 @section('Content')
 
 
-    <div class="MainContainer">
-        <label for="deletionCategory">What do you wish to Delete?</label><br>
+<div class="MainContainer">
+    <label for="deletionCategory">What do you wish to Delete?</label><br>
 
 
+    <form action="{{ action('HomeController@deleteSomething') }}" method="POST">
         <select name="select_category" id="deletionCategory" onchange="changeHTML()">
             <option value="empty">Select a Value</option>
             <option value="artist">Artist</option>
@@ -29,21 +30,21 @@
             <option value="cancion">Track</option>
             <br>
         </select>
-        <input id="submit" type="submit" name="button" value="Submit" style="display: none;"/>
+        <input id="submit" type="submit" name="button" value="Submit" style="display: none;" />
 
 
-    </div>
+</div>
 
-    <div class="registrationInformation" id="informationContainer">
+<div class="registrationInformation" id="informationContainer">
 
-    </div>
-
+</div>
+</form>
 @endsection
 
 
 @section('JavaScript')
-    <script>
-        const selector = document.getElementById('deletionCategory');
+<script>
+    const selector = document.getElementById('deletionCategory');
 
 
         const informationContainer = document.getElementById('informationContainer');
@@ -56,7 +57,7 @@
             } else if (selector.value == 'artist') {
                 document.getElementById('submit').style.display = 'inline';
                 informationContainer.innerHTML = '';
-                informationContainer.innerHTML = "<h3>Artist Name</h3><br><textarea id=\"artistName\" placeholder=\"The name of your artist...\"></textarea><br>";
+                informationContainer.innerHTML = "<h3>Artist Name</h3><br><input name=\"artist\" id=\"artistName\" placeholder=\"The name of your artist...\"></input><br>";
                 currentButton = document.getElementById('submit');
                 currentButton.addEventListener('click', function () {
                     if (document.getElementById('artistName').value == '') {
@@ -69,7 +70,7 @@
                         artistFormated = encodeURIComponent(artist_name);
                         // alert(encodeURIComponent(artist_name))
 
-                        window.location.href = `${url}${artistFormated}`
+                        // window.location.href = `${url}${artistFormated}`
 
 
                     }
@@ -77,7 +78,7 @@
             } else if (selector.value == 'album') {
                 document.getElementById('submit').style.display = 'inline';
                 informationContainer.innerHTML = '';
-                informationContainer.innerHTML = '<h3>Artist Name</h3><br><textarea id="artistName" placeholder="The name of your artist..."></textarea><br><h3>Album Name</h3><br><textarea id="albumName" placeholder="The name of your album..."></textarea><br>';
+                informationContainer.innerHTML = '<h3>Artist Name</h3><br><input name="artist" id="artistName" placeholder="The name of your artist..."></input><br><h3>Album Name</h3><br><input name="album" id="albumName" placeholder="The name of your album..."></input><br>';
                 currentButton = document.getElementById('submit');
 
                 currentButton.addEventListener('click', function () {
@@ -99,13 +100,13 @@
                         artistFormated = encodeURI(artist_name);
                         albumFormated = encodeURI(album_name);
 
-                        window.location.href = `${url}${artistFormated}/${albumFormated}`
+                        // window.location.href = `${url}${artistFormated}/${albumFormated}`
                     }
                 })
             } else if (selector.value == 'cancion') {
                 document.getElementById('submit').style.display = 'inline';
                 informationContainer.innerHTML = '';
-                informationContainer.innerHTML = '<h3>Artist Name</h3><br><textarea id="artistName" placeholder="The name of your artist..."></textarea><br><h3>Album Name</h3><br><textarea id="albumName" placeholder="The name of your album..."></textarea><br><h3>Track Name and Genre</h3><br><textarea id="trackName" placeholder="The name of your track..."></textarea>';
+                informationContainer.innerHTML = '<h3>Artist Name</h3><br><input name="artist" id="artistName" placeholder="The name of your artist..."></input><br><h3>Album Name</h3><br><input name="album" id="albumName" placeholder="The name of your album..."></input><br><h3>Track Name and Genre</h3><br><input name="track" id="trackName"placeholder="The name of your track..."></input><br><input name="genre" id="trackGenre"placeholder="The genre of your track..."></input><br><input name="url" id="url"placeholder="Your Track\'s URL"></input><br>';
                 currentButton = document.getElementById('submit');
 
                 currentButton.addEventListener('click', function () {
@@ -121,18 +122,18 @@
                     if (document.getElementById('artistName').value != '' && document.getElementById('albumName').value != '' && document.getElementById('trackName').value != '') {
 
 
-                        artist_name = document.getElementById('artistName').value;
-                        album_name = document.getElementById('albumName').value;
-                        track_name = document.getElementById('trackName').value;
-                        url = 'http://projectobases.test/delete/';
-                        artist_name = artist_name.replace(/\//g, '|');
-                        album_name = album_name.replace(/\//g, '|');
-                        track_name = track_name.replace(/\//g, '|');
-                        artistFormated = encodeURI(artist_name);
-                        albumFormated = encodeURI(album_name);
-                        trackFormated = encodeURI(track_name);
+                        // artist_name = document.getElementById('artistName').value;
+                        // album_name = document.getElementById('albumName').value;
+                        // track_name = document.getElementById('trackName').value;
+                        // url = 'http://projectobases.test/delete/';
+                        // artist_name = artist_name.replace(/\//g, '|');
+                        // album_name = album_name.replace(/\//g, '|');
+                        // track_name = track_name.replace(/\//g, '|');
+                        // artistFormated = encodeURI(artist_name);
+                        // albumFormated = encodeURI(album_name);
+                        // trackFormated = encodeURI(track_name);
 
-                        window.location.href = `${url}${artistFormated}/${albumFormated}/${trackFormated}`
+                        // window.location.href = `${url}${artistFormated}/${albumFormated}/${trackFormated}`
                     }
                 })
 
@@ -152,7 +153,7 @@
         })
 
 
-    </script>
+</script>
 
 
 
