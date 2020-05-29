@@ -34,7 +34,7 @@ Route::get('/searchQuery/{code}/{searchValue}', ['uses' => 'HomeController@searc
 //Registration page
 Route::get('/register_new_info', 'HomeController@newInfoRegistration');
 //Register an artist
-Route::get('/register_new_info/{artist}', ['uses'=> 'HomeController@registerArtist']);
+Route::get('/register_new_info/{artist}', ['uses' => 'HomeController@registerArtist']);
 //Register an album
 Route::get('/register_new_info/{artist}/{album}', ['uses' => 'HomeController@registerAlbum']);
 //Register a track (and its genre)
@@ -73,7 +73,7 @@ Route::get('/hide/{artist}/{album}/{track}', ['uses' => 'HomeController@hideTheS
 
 Route::get('/userChanges', 'HomeController@userChanges');
 
-Route::get('/deleteUser/{id}', ['uses'=>'HomeController@deleteUser']);
+Route::get('/deleteUser/{id}', ['uses' => 'HomeController@deleteUser']);
 
 
 
@@ -83,11 +83,4 @@ Route::get('/generateCSV', 'HomeController@generateCSV');
 
 Route::resource('mongo', "MongoController");
 
-
-
-
-
-
-
-
-
+Route::post('/addedSomething', 'HomeController@tryOut');

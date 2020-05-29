@@ -12,6 +12,7 @@ use App\track;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Contracts\Support\Renderable;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -774,5 +775,188 @@ class HomeController extends Controller
         $invoice = DB::table("invoice")->get();
         $csvExporter = new \Laracsv\Export();
         $csvExporter->build($invoice, ['invoiceid', 'customerid', 'invoicedate', 'billingaddress', 'billingcity', 'billingstate', 'billingcountry', 'billingpostalcode', 'total'])->download();
+    }
+
+    public function tryOut(Request $request)
+    {
+        $addingType = $request->get('select_category');
+        if ($addingType == 'empty') {
+            return view('PageNotFound');
+        } else if ($addingType == 'artist') {
+            $artist_name_formated = $request->get('artist');
+            $artist = new artist;
+            $artistCount = DB::table('artist')->orderBy('artistid', 'desc')->first();
+            $artistidsum = $artistCount->artistid;
+
+
+            $artist->artistid = $artistidsum + 1;
+            $artist->name = $artist_name_formated;
+
+            $artist->save();
+        } else if ($addingType == 'album') {
+            //        Get the Post Values
+            $artist_name_formated = $request->get('artist');
+            $album_name_formated = $request->get('album');
+
+            //        Instantiate table
+            $album_table = new album;
+            ////        Check how many albums exist already
+            $album_count = DB::table('album')->orderBy('artistid', 'desc')->first();
+            $albumidsum = $album_count->albumid;
+            ////        Check if the artist exists or not (value must be higher than 0)
+            $artistExists = DB::table('artist')->where('name', $artist_name_formated)->count();
+            ////        Get the id of the artist
+            $idGetter = DB::table('artist')->where('name', $artist_name_formated)->first();
+            ////        Store the id of the artist
+            $idStorer = $idGetter->artistid;
+            //
+            if ($artistExists > 0) {
+                $album_table->albumid = $albumidsum + 1;
+                $album_table->title = $album_name_formated;
+                $album_table->artistid = $idStorer;
+                $album_table->save();
+            } else {
+                print('Artist not found. Couldn\'t add album.');
+            }
+            return redirect()->action('HomeController@profile');
+        } else if ($addingType == 'cancion') {
+            $user = Auth::user();
+            //      Get the data from the URL
+            $artist_name_formated = $request->get('artist');
+            $album_name_formated = $request->get('album');
+            $track_name_formated = $request->get('track');
+            $track_url_formatted = $request->get('url');
+
+            $userid = $user->id;
+            //        instantiate table
+
+            //
+            ////        ARTIST SECTION
+            ////        check if the artist exists (count must be larger than 0)
+            $artistExists = DB::table('artist')->where('name', $artist_name_formated)->count();
+            ////        Get the id of the artist
+            $id_artist_getter = DB::table('artist')->where('name', $artist_name_formated)->first();
+            ////        Store the ID
+
+            if ($id_artist_getter == null) {
+                return "Artist not found";
+            }
+            $id_artist = $id_artist_getter->artistid;
+            //
+            ////        ALBUM SECTION
+            ////        Check if the album exists or not (count must be larger than 0)
+            $albumExists = DB::table('album')->where('title', $album_name_formated)->count();
+            print($albumExists);
+            ////        Get the ID of the album
+            $id_album_getter = DB::table('album')->where('title', $album_name_formated)->first();
+            ////        Store the value of the ID
+            print(var_dump($id_album_getter));
+            if ($id_album_getter == null) {
+                return "Album not found";
+            }
+            $id_album = $id_album_getter->albumid;
+            print($id_album);
+            ////        Check if the Album belongs to the artist (Count must be larger than 0)
+            $albumBelongsToArtist = DB::table('artist')
+                ->join('album', 'artist.artistid', '=', 'artist.artistid')
+                ->count();
+            print($albumBelongsToArtist);
+            //
+            //        TRACK SECTION
+            //       Count how many tracks there are
+            $trackid = DB::table('track')
+                ->orderBy('trackid', 'desc')
+                ->first();
+
+            $idtrack = $trackid->trackid;
+
+
+            if ($artistExists > 0) {
+                if ($albumExists > 0) {
+                    if ($albumBelongsToArtist > 0) {
+                        DB::beginTransaction();
+                        try {
+                            // Instantiate the other tables
+                            $track_table = new track();
+                            $mod_table = new modification();
+                            $invoice_table = new invoice();
+                            $invoiceline_table = new invoiceline();
+
+
+
+
+                            // Insert into the track table
+
+                            $track_table->trackid = $idtrack + 1;
+                            $track_table->name = $track_name_formated;
+                            $track_table->albumid = $id_album;
+                            $track_table->mediatypeid = 1;
+                            $track_table->genreid = $request->get('genre');
+                            $track_table->composer = null;
+                            $track_table->milliseconds = rand(80000, 300000);
+                            $track_table->bytes = rand(90000, 300000);
+                            $track_table->unitprice = 0.99;
+                            $track_table->hidden_status = 0;
+                            $track_table->added_by = $userid;
+                            $track_table->url = $track_url_formatted;
+                            $track_table->save();
+
+                            print('Added to track Table');
+                            // Insert into the modification table
+                            $mod_table->modification_type = 1;  // 1 = Creation of something
+                            $mod_table->modified_type = 3;      // 3 = Track
+                            $mod_table->modified_id = $idtrack + 1;
+                            $mod_table->user_id = $userid;
+                            $mod_table->date_of_event = Carbon::now();
+                            $mod_table->save();
+
+                            // Insert into the invoice table
+                            $invoiceid = DB::table('invoice')
+                                ->orderBy('invoiceid', 'desc')
+                                ->first();
+
+                            $idinvoice = $invoiceid->invoiceid;
+
+                            $invoice_table->invoiceid = $idinvoice + 1;
+                            $invoice_table->customerid = $userid;
+                            $invoice_table->invoicedate = Carbon::now();
+                            $invoice_table->billingaddress = null;
+                            $invoice_table->billingcity = null;
+                            $invoice_table->billingstate = null;
+                            $invoice_table->billingcountry = null;
+                            $invoice_table->billingpostalcode = null;
+                            $invoice_table->total = 0.0;
+                            $invoice_table->save();
+
+                            // Insert into InvoiceLine Table
+                            $invoicelineid = DB::table('invoiceline')
+                                ->orderBy('invoicelineid', 'desc')
+                                ->first();
+
+                            $idinvoiceline = $invoicelineid->invoicelineid;
+
+                            $invoiceline_table->invoicelineid = $idinvoiceline + 1;
+                            $invoiceline_table->invoiceid = $idinvoice;
+                            $invoiceline_table->trackid = $idtrack;
+                            $invoiceline_table->unitprice = 0.0;
+                            $invoiceline_table->quantity = 1;
+                            $invoiceline_table->save();
+
+                            DB::COMMIT();
+                        } catch (\Illuminate\Database\QueryException $exception) {
+                            DB::rollBack();
+
+
+                            return $exception;
+                        }
+                    } else {
+                        return "The Album does not belong to the artist";
+                    }
+                } else return "The album doesn't exist";
+            } else {
+                return "The artist doesn\'t exist";
+            }
+        }
+        return redirect()->action('HomeController@profile');
     }
 }

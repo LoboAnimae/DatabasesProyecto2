@@ -4,15 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Registration</title>
 
     <style>
-        body{
+        body {
             scroll-behavior: smooth;
             overflow-x: hidden;
         }
+
         .header {
             height: 100px;
             line-height: 96px;
@@ -28,6 +29,7 @@
             padding: 10px;
             box-shadow: 5px 10px 8px #888888;
         }
+
         h3 {
             font-size: 34px;
             font-family: Times New Roman, sans-serif;
@@ -41,7 +43,7 @@
             box-shadow: 5px 10px 8px #888888;
         }
 
-        textarea {
+        input {
             position: relative;
             left: 500px;
             resize: none;
@@ -53,6 +55,7 @@
             padding: 10px;
             box-shadow: 5px 10px 8px #888888;
         }
+
         input#submit {
             margin: 0px;
             background: #70869e;
@@ -79,12 +82,14 @@
             text-align: center;
             left: 18%;
         }
+
         .MainContainer {
             position: relative;
             left: 200px;
             font-size: 54px;
             top: 19px;
         }
+
         #informationContainer {
             font-size: xx-large;
         }
@@ -105,38 +110,41 @@
             height: 120px;
             background: #70869e;
         }
-
-
     </style>
 </head>
+
 <body>
 
-<nav class="header">
-    Registration Form
-    <div class="goToProfile" id="goBackButton" ><p1 style="margin: 0px; position: relative;left: -17px;top: 16px;">Go Back</p1></div>
-</nav>
+    <nav class="header">
+        Registration Form
+        <div class="goToProfile" id="goBackButton">
+            <p1 style="margin: 0px; position: relative;left: -17px;top: 16px;">Go Back</p1>
+        </div>
+    </nav>
+
+    <form action="{{ action('HomeController@tryOut') }}" method="POST">
+        @csrf
+        <div class="MainContainer">
+            <label for="registrationCategory">What are you going to register?</label><br>
+
+            <select name="select_category" id="registrationCategory" onchange="changeHTML()">
+                <option value="empty">Select a Value</option>
+                <option value="artist">Artist</option>
+                <option value="album">Album</option>
+                <option value="cancion">Track</option>
+                <br>
+            </select>
+            <input id="submit" type="submit" name="button" value="Submit" style="display: none;" />
 
 
-<div class="MainContainer">
-    <label for="registrationCategory">What are you going to register?</label><br>
 
-    <select name="select_category" id="registrationCategory" onchange="changeHTML()">
-        <option value="empty">Select a Value</option>
-        <option value="artist">Artist</option>
-        <option value="album">Album</option>
-        <option value="cancion">Track</option>
-        <br>
-    </select>
-    <input id="submit" type="submit" name="button" value="Submit" style="display: none;"/>
-    <!--        <button id='submit' style="display: none">Submit</button><br>-->
+        </div>
 
 
+        <div class="registrationInformation" id="informationContainer">
 
-</div>
-
-<div class="registrationInformation" id="informationContainer">
-
-</div>
+        </div>
+    </form>
 
 </body>
 <script>
@@ -155,30 +163,19 @@
         else if (selector.value == 'artist'){
             document.getElementById('submit').style.display='inline'
             informationContainer.innerHTML=''
-            informationContainer.innerHTML="<h3>Artist Name</h3><br><textarea id=\"artistName\" placeholder=\"The name of your artist...\"></textarea><br>"
+            informationContainer.innerHTML="<h3>Artist Name</h3><br><input name=\"artist\" id=\"artistName\" placeholder=\"The name of your artist...\"></input><br>"
             currentButton = document.getElementById('submit')
             currentButton.addEventListener('click', function() {
                 if(document.getElementById('artistName').value=='') {
                     alert("Artist name can't be empty!")
                 }
-                else {
-                    alert("Your changes have been submitted")
-                    artist_name = document.getElementById('artistName').value
-                    artist_name = artist_name.replace(/\//g, '|')
-                    url = 'http://projectobases.test/register_new_info/'
-                    artistFormated = encodeURIComponent(artist_name)
-                    // alert(encodeURIComponent(artist_name))
 
-                    window.location.href= `${url}${artistFormated}`
-
-
-                }
             })
         }
         else if (selector.value =='album'){
             document.getElementById('submit').style.display='inline'
             informationContainer.innerHTML=''
-            informationContainer.innerHTML='<h3>Artist Name</h3><br><textarea id="artistName" placeholder="The name of your artist..."></textarea><br><h3>Album Name</h3><br><textarea id="albumName" placeholder="The name of your album..."></textarea><br>'
+            informationContainer.innerHTML='<h3>Artist Name</h3><br><input name="artist" id="artistName" placeholder="The name of your artist..."></input><br><h3>Album Name</h3><br><input name="album" id="albumName" placeholder="The name of your album..."></input><br>'
             currentButton = document.getElementById('submit')
 
             currentButton.addEventListener('click', function() {
@@ -200,14 +197,14 @@
                     artistFormated = encodeURI(artist_name)
                     albumFormated = encodeURI(album_name)
 
-                    window.location.href= `${url}${artistFormated}/${albumFormated}`
+
                 }
             })
         }
         else if (selector.value == 'cancion'){
             document.getElementById('submit').style.display='inline'
             informationContainer.innerHTML=''
-            informationContainer.innerHTML='<h3>Artist Name</h3><br><textarea id="artistName" placeholder="The name of your artist..."></textarea><br><h3>Album Name</h3><br><textarea id="albumName" placeholder="The name of your album..."></textarea><br><h3>Track Name and Genre</h3><br><textarea id="trackName" placeholder="The name of your track..."></textarea><br><textarea id="trackGenre" placeholder="The genre of your track..."></textarea><br><textarea id="url" placeholder="Your Track\'s URL"></textarea><br>'
+            informationContainer.innerHTML='<h3>Artist Name</h3><br><input name="artist" id="artistName" placeholder="The name of your artist..."></input><br><h3>Album Name</h3><br><input name="album" id="albumName" placeholder="The name of your album..."></input><br><h3>Track Name and Genre</h3><br><input name="track" id="trackName" placeholder="The name of your track..."></input><br><input name="genre" id="trackGenre" placeholder="The genre of your track..."></input><br><input name="url" id="url" placeholder="Your Track\'s URL"></input><br>'
             currentButton = document.getElementById('submit')
 
             currentButton.addEventListener('click', function() {
@@ -243,9 +240,10 @@
                     trackURLFormatted = encodeURIComponent(track_url)
 
 
-                    window.location.href= `${url}${artistFormated}/${albumFormated}/${trackFormated}/${genrename}?url=${trackURLFormatted}`
+
                 }
-            })
+            }
+            )
 
         }
     }
@@ -267,4 +265,5 @@
 
 
 </script>
+
 </html>
