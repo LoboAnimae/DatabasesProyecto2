@@ -257,314 +257,10 @@ class HomeController extends Controller
         return view('outputFile', compact('top5Artists', 'genreMostSongs', 'longestSongs', 'playlistDuration', 'avgGenre', 'artistPerPlaylist', 'genreDiversity', 'userSubmitted'));
     }
 
-    // Info Register section
-    public function registerArtist($artistName)
-    {
-
-        $artist_name_formated = urldecode($artistName);
-        $artist_name_formated = Str::replaceArray('|', ['/'], $artist_name_formated);
-        $artist = new artist;
-        $artistCount = DB::table('artist')->orderBy('artistid', 'desc')->first();
-        $artistidsum = $artistCount->artistid;
-
-
-        $artist->artistid = $artistidsum + 1;
-        $artist->name = $artist_name_formated;
-
-        $artist->save();
-        return redirect()->action('HomeController@profile');
-    }
-
-    public function registerAlbum($artist, $album)
-    {
-        $artist_name_formated = urldecode($artist);
-        $artist_name_formated = Str::replaceArray('|', ['/'], $artist_name_formated);
-        $album_name_formated = urldecode($album);
-        $album_name_formated = Str::replaceArray('|', ['/'], $album_name_formated);
-
-        //        Instantiate table
-        $album_table = new album;
-        ////        Check how many albums exist already
-        $album_count = DB::table('album')->orderBy('artistid', 'desc')->first();
-        $albumidsum = $album_count->albumid;
-        ////        Check if the artist exists or not (value must be higher than 0)
-        $artistExists = DB::table('artist')->where('name', $artist_name_formated)->count();
-        ////        Get the id of the artist
-        $idGetter = DB::table('artist')->where('name', $artist_name_formated)->first();
-        ////        Store the id of the artist
-        $idStorer = $idGetter->artistid;
-        //
-        if ($artistExists > 0) {
-            $album_table->albumid = $albumidsum + 1;
-            $album_table->title = $album_name_formated;
-            $album_table->artistid = $idStorer;
-            $album_table->save();
-        } else {
-            print('Artist not found. Couldn\'t add album.');
-        }
-        return redirect()->action('HomeController@profile');
-    }
-
-    public function registerTrack($artist, $album, $track, $genre, $availableURL)
-    {
-
-        $user = Auth::user();
-        //      Get the data from the URL
-        $artist_name_formated = urldecode($artist);
-        $artist_name_formated = Str::replaceArray('|', ['/'], $artist_name_formated);
-        $album_name_formated = urldecode($album);
-        $album_name_formated = Str::replaceArray('|', ['/'], $album_name_formated);
-        $track_name_formated = urldecode($track);
-        $track_name_formated = Str::replaceArray('|', ['/'], $track_name_formated);
-        $track_url_formatted = urldecode($availableURL);
-
-        $userid = $user->id;
-        //        instantiate table
-        $track_table = new track();
-        //
-        ////        ARTIST SECTION
-        ////        check if the artist exists (count must be larger than 0)
-        $artistExists = DB::table('artist')->where('name', $artist_name_formated)->count();
-        ////        Get the id of the artist
-        $id_artist_getter = DB::table('artist')->where('name', $artist_name_formated)->first();
-        ////        Store the ID
-        //        print('Artist Exists:'.$artistExists);
-
-        if ($id_artist_getter == null) {
-            return "Artist not found";
-        }
-        $id_artist = $id_artist_getter->artistid;
-        //
-        ////        ALBUM SECTION
-        ////        Check if the album exists or not (count must be larger than 0)
-        $albumExists = DB::table('album')->where('title', $album_name_formated)->count();
-        print($albumExists);
-        ////        Get the ID of the album
-        $id_album_getter = DB::table('album')->where('title', $album_name_formated)->first();
-        ////        Store the value of the ID
-        print(var_dump($id_album_getter));
-        if ($id_album_getter == null) {
-            return "Album not found";
-        }
-        $id_album = $id_album_getter->albumid;
-        print($id_album);
-        ////        Check if the Album belongs to the artist (Count must be larger than 0)
-        $albumBelongsToArtist = DB::table('artist')
-            ->join('album', 'artist.artistid', '=', 'artist.artistid')
-            ->count();
-        print($albumBelongsToArtist);
-        //
-        //        TRACK SECTION
-        //       Count how many tracks there are
-        $trackid = DB::table('track')
-            ->orderBy('trackid', 'desc')
-            ->first();
-
-        $idtrack = $trackid->trackid;
-
-
-        if ($artistExists > 0) {
-            if ($albumExists > 0) {
-                if ($albumBelongsToArtist > 0) {
-                    DB::beginTransaction();
-                    try {
-                        // Instantiate the other tables
-
-                        $mod_table = new modification();
-                        $invoice_table = new invoice();
-                        $invoiceline_table = new invoiceline();
-
-
-                        // Insert into the track table
-
-                        $track_table->trackid = $idtrack + 1;
-                        $track_table->name = $track_name_formated;
-                        $track_table->albumid = $id_album;
-                        $track_table->mediatypeid = 1;
-                        $track_table->genreid = $genre;
-                        $track_table->composer = null;
-                        $track_table->milliseconds = rand(80000, 300000);
-                        $track_table->bytes = rand(90000, 300000);
-                        $track_table->unitprice = 0.99;
-                        $track_table->hidden_status = 0;
-                        $track_table->added_by = $userid;
-                        $track_table->url = $track_url_formatted;
-                        $track_table->save();
-
-                        // Insert into the modification table
-                        $mod_table->modification_type = 1;  // 1 = Creation of something
-                        $mod_table->modified_type = 3;      // 3 = Track
-                        $mod_table->modified_id = $idtrack + 1;
-                        $mod_table->user_id = $userid;
-                        $mod_table->date_of_event = Carbon::now();
-                        $mod_table->save();
-
-                        // Insert into the invoice table
-                        $invoiceid = DB::table('invoice')
-                            ->orderBy('invoiceid', 'desc')
-                            ->first();
-
-                        $idinvoice = $invoiceid->invoiceid;
-
-                        $invoice_table->invoiceid = $idinvoice + 1;
-                        $invoice_table->customerid = $userid;
-                        $invoice_table->invoicedate = Carbon::now();
-                        $invoice_table->billingaddress = null;
-                        $invoice_table->billingcity = null;
-                        $invoice_table->billingstate = null;
-                        $invoice_table->billingcountry = null;
-                        $invoice_table->billingpostalcode = null;
-                        $invoice_table->total = 0.0;
-                        $invoice_table->save();
-
-                        // Insert into InvoiceLine Table
-                        $invoicelineid = DB::table('invoiceline')
-                            ->orderBy('invoicelineid', 'desc')
-                            ->first();
-
-                        $idinvoiceline = $invoicelineid->invoicelineid;
-
-                        $invoiceline_table->invoicelineid = $idinvoiceline + 1;
-                        $invoiceline_table->invoiceid = $idinvoice;
-                        $invoiceline_table->trackid = $idtrack;
-                        $invoiceline_table->unitprice = 0.0;
-                        $invoiceline_table->unitprice = 1;
-                        $invoiceline_table->save();
-
-                        DB::commit();
-                    } catch (\Illuminate\Database\QueryException $exception) {
-                        DB::rollBack();
-                    }
-                } else {
-                    return "The Album does not belong to the artist";
-                }
-            } else return "The album doesn't exist";
-        } else {
-            return "The artist doesn\'t exist";
-        }
-        return redirect()->action('HomeController@profile');
-    }
-
-
     // Info Deleting Section
     public function deletePage()
     {
         return view('delete_form');
-    }
-
-    public function deleteArtist($artist)
-    {
-        $artist_name_formated = urldecode($artist);
-        $artist_name_formated = Str::replaceArray('|', ['/'], $artist_name_formated);
-
-        //        Check if the artist exists
-        $artistExists = DB::table('artist')
-            ->where('name', $artist_name_formated)
-            ->count();
-
-        if ($artistExists < 1) return 'This artist does not exist! (Check your caps)';
-        //        Get the table that has all the tracks
-        $tracks = DB::table('artist')
-            ->join('album', 'artist.artistid', '=', 'album.artistid')
-            ->join('track', 'album.albumid', '=', 'track.albumid')
-            ->where('artist.name', $artist_name_formated)
-            ->get();
-        //        Get the table that has all the albums
-        $albums = DB::table('artist')
-            ->join('album', 'artist.artistid', '=', 'album.artistid')
-            ->where('artist.name', $artist_name_formated)
-            ->get();
-
-        //        Get the table with the artist name
-
-
-        $track_table = DB::table('track');
-        $album_table = DB::table('album');
-        $artist_table = DB::table('artist');
-
-        foreach ($tracks as $track) {
-            print($track->trackid . '<br>');
-        }
-        foreach ($tracks as $track) {
-            $id = $track->trackid;
-            $track_table->where('trackid', $id)->delete();
-        }
-
-        foreach ($albums as $album) {
-            $id = $album->albumid;
-            $album_table->where('albumid', $id)->delete();
-        }
-
-        DB::table('artist')
-            ->where('name', $artist_name_formated)->delete();
-
-
-        return redirect()->action('HomeController@profile');
-    }
-
-    public function deleteAlbum($artist, $album)
-    {
-        $artist_name_formated = urldecode($artist);
-        $artist_name_formated = Str::replaceArray('|', ['/'], $artist_name_formated);
-
-        $album_name_formated = urldecode($album);
-        $album_name_formated = Str::replaceArray('|', ['/'], $album_name_formated);
-
-
-        //        Check if the album belongs
-        $album_belong = DB::table('album')
-            ->join('artist', 'album.artistid', '=', 'artist.artistid')
-            ->where('album.title', $album_name_formated)
-            ->where('artist.name', $artist_name_formated)
-            ->count();
-
-        if ($album_belong < 1) return 'Album doesn\'t exist!';
-
-        //        Get the album id to delete all the tracks
-        $id_album = DB::table('album')
-            ->join('artist', 'album.artistid', '=', 'artist.artistid')
-            ->where('album.title', $album_name_formated)
-            ->where('artist.name', $artist_name_formated)
-            ->first();
-        $id_album = $id_album->albumid;
-
-        DB::table('track')->where('albumid', $id_album)->delete();
-        DB::table('album')->where('title', $album_name_formated)->delete();
-        return redirect()->action('HomeController@profile');
-    }
-
-    public function deleteTrack($artist, $album, $track)
-    {
-        //        Decode URLs
-        $artist_name_formated = urldecode($artist);
-        $artist_name_formated = Str::replaceArray('|', ['/'], $artist_name_formated);
-
-        $album_name_formated = urldecode($album);
-        $album_name_formated = Str::replaceArray('|', ['/'], $album_name_formated);
-
-        $track_name_formated = urldecode($track);
-        $track_name_formated = Str::replaceArray('|', ['/'], $track_name_formated);
-
-        //        Instantiate the table
-        $trackTable = DB::table('track');
-
-        //        Check if track exists
-        $trackExists = DB::table('track')->where('name', $track_name_formated)
-            ->count();
-        //        Check if track belongs to Artist
-        $trackBelongs = DB::table('track')
-            ->join('album', 'track.albumid', '=', 'album.albumid')
-            ->join('artist', 'album.artistid', '=', 'artist.artistid')
-            ->where('track.name', $track_name_formated)
-            ->where('album.title', $album_name_formated)
-            ->where('artist.name', $artist_name_formated)
-            ->count();
-
-        if ($trackBelongs < 1) return 'This information is invalid.';
-        //        Delete Track
-        $trackTable->where('name', '=', $track_name_formated)
-            ->delete();
-        return redirect()->action('HomeController@profile');
     }
 
     // To hide a song
@@ -694,82 +390,6 @@ class HomeController extends Controller
         return view('updateInfo');
     }
 
-
-    public function updateArtistInfo($oldArtistName, $newArtistName)
-    {
-
-        $old_artist = Str::replaceArray('|', ['/'], $oldArtistName);
-        $artist_name_formated = Str::replaceArray('|', ['/'], $newArtistName);
-
-
-        $user = Auth::user();
-        $username = $user->name;
-        $userQuery = DB::table('users')
-            ->join('roles_relations', 'users.id', '=', 'roles_relations.id_user')
-            ->where('users.name', $username)->first();
-        $userRole = $userQuery->id_roles;
-        if ($userRole != 1) return view('Error405');
-
-
-        DB::table('artist')->where('name', $old_artist)->update([
-            'name' => $artist_name_formated
-        ]);
-        return view('updateInfo');
-    }
-
-
-    public function updateAlbumInfo($artist, $album, $newAlbum)
-    {
-
-        $artist_name_formated = Str::replaceArray('|', ['/'], $artist);
-        $album_name_formated = Str::replaceArray('|', ['/'], $album);
-        $album_new_name_formated = Str::replaceArray('|', ['/'], $newAlbum);
-
-        $user = Auth::user();
-        $username = $user->name;
-        $userQuery = DB::table('users')
-            ->join('roles_relations', 'users.id', '=', 'roles_relations.id_user')
-            ->where('users.name', $username)->first();
-        $userRole = $userQuery->id_roles;
-        if ($userRole != 1) return view('Error405');
-
-
-        DB::table('album')
-            ->join('artist', 'album.artistid', '=', 'artist.artistid')
-            ->where('artist.name', $artist_name_formated)->where('album.title', $album_name_formated)->update([
-                'album.title' => $album_new_name_formated
-            ]);
-        return view('updateInfo');
-    }
-
-    public function updateTrackInfo($artist, $album, $track, $newTrack)
-    {
-        $artist_formated = Str::replaceArray('|', ['/'], $artist);
-        $AlbumFormated = Str::replaceArray('|', ['/'], $album);
-        $oldTrackFormated = Str::replaceArray('|', ['/'], $track);
-        $newTrackFormated = Str::replaceArray('|', ['/'], $newTrack);
-
-        $user = Auth::user();
-        $username = $user->name;
-        $userQuery = DB::table('users')
-            ->join('roles_relations', 'users.id', '=', 'roles_relations.id_user')
-            ->where('users.name', $username)->first();
-        $userRole = $userQuery->id_roles;
-        if ($userRole != 1) return view('Error405');
-
-
-        $checker = DB::table('track')
-            ->join('album', 'album.albumid', '=', 'track.albumid')
-            ->join('artist', 'artist.artistid', '=', 'album.artistid')
-            ->where('artist.name', $artist_formated)
-            ->where('album.title', $AlbumFormated)
-            ->where('track.name', $oldTrackFormated)
-            ->update([
-                'track.name' => $newTrackFormated
-            ]);
-        return view('updateInfo');
-    }
-
     public function generateCSV()
     {
         $invoice = DB::table("invoice")->get();
@@ -777,22 +397,36 @@ class HomeController extends Controller
         $csvExporter->build($invoice, ['invoiceid', 'customerid', 'invoicedate', 'billingaddress', 'billingcity', 'billingstate', 'billingcountry', 'billingpostalcode', 'total'])->download();
     }
 
-    public function tryOut(Request $request)
+    public function addSomething(Request $request)
     {
         $addingType = $request->get('select_category');
         if ($addingType == 'empty') {
             return view('PageNotFound');
         } else if ($addingType == 'artist') {
-            $artist_name_formated = $request->get('artist');
-            $artist = new artist;
-            $artistCount = DB::table('artist')->orderBy('artistid', 'desc')->first();
-            $artistidsum = $artistCount->artistid;
+            DB::beginTransaction();
+            try {
+                $mod_table = new modification();
+                $user = Auth::user();
+                $userid = $user->id;
 
+                $artist_name_formated = $request->get('artist');
+                $artist = new artist;
+                $artistCount = DB::table('artist')->orderBy('artistid', 'desc')->first();
+                $artistidsum = $artistCount->artistid;
+                $artist->artistid = $artistidsum + 1;
+                $artist->name = $artist_name_formated;
+                $artist->save();
 
-            $artist->artistid = $artistidsum + 1;
-            $artist->name = $artist_name_formated;
+                $mod_table->modification_type = 3;  // 3 = Creation of something
+                $mod_table->modified_type = 3;      // 3 = artist
+                $mod_table->modified_id = $artistidsum + 1;
+                $mod_table->user_id = $userid;
+                $mod_table->save();
 
-            $artist->save();
+                DB::commit();
+            } catch (\Illuminate\Database\QueryException $exception) {
+                DB::rollBack();
+            }
         } else if ($addingType == 'album') {
             //        Get the Post Values
             $artist_name_formated = $request->get('artist');
@@ -811,23 +445,39 @@ class HomeController extends Controller
             $idStorer = $idGetter->artistid;
             //
             if ($artistExists > 0) {
-                $album_table->albumid = $albumidsum + 1;
-                $album_table->title = $album_name_formated;
-                $album_table->artistid = $idStorer;
-                $album_table->save();
+                DB::beginTransaction();
+                try {
+                    $album_table->albumid = $albumidsum + 1;
+                    $album_table->title = $album_name_formated;
+                    $album_table->artistid = $idStorer;
+                    $album_table->save();
+
+                    $mod_table = new modification();
+                    $user = Auth::user();
+                    $userid = $user->id;
+                    $mod_table->modification_type = 3;  // 3 = Creation of something
+                    $mod_table->modified_type = 2;      // 3 = artist
+                    $mod_table->modified_id = $albumidsum + 1;
+                    $mod_table->user_id = $userid;
+                    $mod_table->save();
+
+                    DB::commit();
+                } catch (\Illuminate\Database\QueryException $exception) {
+                    DB::rollBack();
+                }
             } else {
                 print('Artist not found. Couldn\'t add album.');
             }
-            return redirect()->action('HomeController@profile');
         } else if ($addingType == 'cancion') {
             $user = Auth::user();
+            $userid = $user->id;
             //      Get the data from the URL
             $artist_name_formated = $request->get('artist');
             $album_name_formated = $request->get('album');
             $track_name_formated = $request->get('track');
             $track_url_formatted = $request->get('url');
 
-            $userid = $user->id;
+
             //        instantiate table
 
             //
@@ -903,11 +553,10 @@ class HomeController extends Controller
 
                             print('Added to track Table');
                             // Insert into the modification table
-                            $mod_table->modification_type = 1;  // 1 = Creation of something
-                            $mod_table->modified_type = 3;      // 3 = Track
+                            $mod_table->modification_type = 3;  // 3 = Creation of something
+                            $mod_table->modified_type = 1;      // 1 = Track
                             $mod_table->modified_id = $idtrack + 1;
                             $mod_table->user_id = $userid;
-                            $mod_table->date_of_event = Carbon::now();
                             $mod_table->save();
 
                             // Insert into the invoice table
@@ -936,7 +585,7 @@ class HomeController extends Controller
                             $idinvoiceline = $invoicelineid->invoicelineid;
 
                             $invoiceline_table->invoicelineid = $idinvoiceline + 1;
-                            $invoiceline_table->invoiceid = $idinvoice;
+                            $invoiceline_table->invoiceid = $idinvoice + 1;
                             $invoiceline_table->trackid = $idtrack;
                             $invoiceline_table->unitprice = 0.0;
                             $invoiceline_table->quantity = 1;
@@ -994,23 +643,191 @@ class HomeController extends Controller
             DB::beginTransaction();
             try {
                 foreach ($tracks as $track) {
+
                     $id = $track->trackid;
+
+                    $mod_table = new modification();
+                    $user = Auth::user();
+                    $userid = $user->id;
+                    $mod_table->modification_type = 1;  // 1 = Deletion ; 2 = Update; 3 = Creation
+                    $mod_table->modified_type = 1;      // 1 = Track; 2 = Album; 3 = Artist
+                    $mod_table->modified_id = $id;
+                    $mod_table->user_id = $userid;
+                    $mod_table->save();
+
                     $track_table->where('trackid', $id)->delete();
                 }
 
                 foreach ($albums as $album) {
                     $id = $album->albumid;
+
+                    $mod_table = new modification();
+                    $user = Auth::user();
+                    $userid = $user->id;
+                    $mod_table->modification_type = 1;  // 3 = Creation of something
+                    $mod_table->modified_type = 2;      // 3 = artist
+                    $mod_table->modified_id = $id;
+                    $mod_table->user_id = $userid;
+                    $mod_table->save();
+
                     $album_table->where('albumid', $id)->delete();
                 }
 
+                $artistGetter = DB::table('artist')->where('name', $artist_name_formated)->first();
+                $idArtist = $artistGetter->artistid;
+
+                $mod_table = new modification();
+                $user = Auth::user();
+                $userid = $user->id;
+                $mod_table->modification_type = 1;  // 1 = Deletion ; 2 = Update; 3 = Creation
+                $mod_table->modified_type = 3;      // 1 = Track; 2 = Album; 3 = Artist
+                $mod_table->modified_id = $idArtist;
+                $mod_table->user_id = $userid;
+                $mod_table->save();
+
                 DB::table('artist')
                     ->where('name', $artist_name_formated)->delete();
+
                 DB::commit();
             } catch (\Illuminate\Database\QueryException $exception) {
                 DB::ROLLBACK();
             }
         } else if ($deletingRequest == 'album') {
+            $artist_name_formated = $request->get('artist');
+            $album_name_formated = $request->get('album');
+
+            //        Check if the album belongs
+            $album_belong = DB::table('album')
+                ->join('artist', 'album.artistid', '=', 'artist.artistid')
+                ->where('album.title', $album_name_formated)
+                ->where('artist.name', $artist_name_formated)
+                ->count();
+
+            if ($album_belong < 1) return 'Album doesn\'t exist!';
+
+            //        Get the album id to delete all the tracks
+            $id_album = DB::table('album')
+                ->join('artist', 'album.artistid', '=', 'artist.artistid')
+                ->where('album.title', $album_name_formated)
+                ->where('artist.name', $artist_name_formated)
+                ->first();
+            $id_album = $id_album->albumid;
+
+            DB::table('track')->where('albumid', $id_album)->delete();
+            DB::table('album')->where('title', $album_name_formated)->delete();
         } else if ($deletingRequest == 'cancion') {
+            //        Decode URLs
+            $artist_name_formated = $request->get('artist');
+            $album_name_formated = $request->get('album');
+            $track_name_formated = $request->get('track');
+
+            //        Instantiate the table
+            $trackTable = DB::table('track');
+
+            //        Check if track exists
+            $trackExists = DB::table('track')->where('name', $track_name_formated)
+                ->count();
+            //        Check if track belongs to Artist
+            $trackBelongs = DB::table('track')
+                ->join('album', 'track.albumid', '=', 'album.albumid')
+                ->join('artist', 'album.artistid', '=', 'artist.artistid')
+                ->where('track.name', $track_name_formated)
+                ->where('album.title', $album_name_formated)
+                ->where('artist.name', $artist_name_formated)
+                ->count();
+
+            if ($trackBelongs < 1) return [$artist_name_formated, $album_name_formated, $track_name_formated];
+            //        Delete Track
+            $trackTable->where('name', '=', $track_name_formated)
+                ->delete();
+        }
+        return redirect()->action('HomeController@profile');
+    }
+
+    public function updateSomething(Request $request)
+    {
+        $updateRequest = $request->get('select_category');
+        if ($updateRequest == 'artist') {
+            $old_artist = $request->get('oldArtist');
+            $artist_name_formated = $request->get('newArtist');
+
+
+            $user = Auth::user();
+            $username = $user->name;
+            $userQuery = DB::table('users')
+                ->join('roles_relations', 'users.id', '=', 'roles_relations.id_user')
+                ->where('users.name', $username)->first();
+            $userRole = $userQuery->id_roles;
+            if ($userRole != 1) return view('Error405');
+
+            $artistGetter = DB::table('artist')->where('name', $old_artist)->first();
+            $artistGetter = $artistGetter->artistid;
+
+            $mod_table = new modification();
+            $userid = $user->id;
+            $mod_table->modification_type = 2;  // 1 = Deletion ; 2 = Update; 3 = Creation
+            $mod_table->modified_type = 3;      // 1 = Track; 2 = Album; 3 = Artist
+            $mod_table->modified_id = $artistGetter;
+            $mod_table->user_id = $userid;
+            $mod_table->save();
+
+            DB::table('artist')->where('name', $old_artist)->update([
+                'name' => $artist_name_formated
+            ]);
+        } else if ($updateRequest == 'album') {
+            $artist_name_formated = $request->get('artist');
+            $album_name_formated = $request->get('oldAlbum');
+            $album_new_name_formated = $request->get('newAlbum');
+
+            $user = Auth::user();
+            $username = $user->name;
+            $userQuery = DB::table('users')
+                ->join('roles_relations', 'users.id', '=', 'roles_relations.id_user')
+                ->where('users.name', $username)->first();
+            $userRole = $userQuery->id_roles;
+            if ($userRole != 1) return view('Error405');
+
+
+            $albumGetter = DB::table('album')->where('artist.name', $artist_name_formated)->where('album.title', $album_name_formated)->first();
+            $albumGetter = $albumGetter->albumid;
+
+            $mod_table = new modification();
+            $userid = $user->id;
+            $mod_table->modification_type = 2;  // 1 = Deletion ; 2 = Update; 3 = Creation
+            $mod_table->modified_type = 2;      // 1 = Track; 2 = Album; 3 = Artist
+            $mod_table->modified_id = $albumGetter;
+            $mod_table->user_id = $userid;
+            $mod_table->save();
+
+            DB::table('album')
+                ->join('artist', 'album.artistid', '=', 'artist.artistid')
+                ->where('artist.name', $artist_name_formated)->where('album.title', $album_name_formated)->update([
+                    'album.title' => $album_new_name_formated
+                ]);
+        } else if ($updateRequest == 'cancion') {
+            $artist_formated = $request->get('artist');
+            $AlbumFormated = $request->get('album');
+            $oldTrackFormated = $request->get('oldTrack');
+            $newTrackFormated = $request->get('newTrack');
+
+            $user = Auth::user();
+            $username = $user->name;
+            $userQuery = DB::table('users')
+                ->join('roles_relations', 'users.id', '=', 'roles_relations.id_user')
+                ->where('users.name', $username)->first();
+            $userRole = $userQuery->id_roles;
+            if ($userRole != 1) return view('Error405');
+
+
+            $checker = DB::table('track')
+                ->join('album', 'album.albumid', '=', 'track.albumid')
+                ->join('artist', 'artist.artistid', '=', 'album.artistid')
+                ->where('artist.name', $artist_formated)
+                ->where('album.title', $AlbumFormated)
+                ->where('track.name', $oldTrackFormated)
+                ->update([
+                    'track.name' => $newTrackFormated
+                ]);
         }
         return redirect()->action('HomeController@profile');
     }

@@ -17,12 +17,13 @@ left: 18%;
 
 @section('Content')
 
+<form action="{{ action('HomeController@deleteSomething') }}" method="POST">
+    <div class="MainContainer">
+        <label for="deletionCategory">What do you wish to Delete?</label><br>
 
-<div class="MainContainer">
-    <label for="deletionCategory">What do you wish to Delete?</label><br>
 
 
-    <form action="{{ action('HomeController@deleteSomething') }}" method="POST">
+        @csrf
         <select name="select_category" id="deletionCategory" onchange="changeHTML()">
             <option value="empty">Select a Value</option>
             <option value="artist">Artist</option>
@@ -33,11 +34,11 @@ left: 18%;
         <input id="submit" type="submit" name="button" value="Submit" style="display: none;" />
 
 
-</div>
+    </div>
 
-<div class="registrationInformation" id="informationContainer">
+    <div class="registrationInformation" id="informationContainer">
 
-</div>
+    </div>
 </form>
 @endsection
 
@@ -106,7 +107,7 @@ left: 18%;
             } else if (selector.value == 'cancion') {
                 document.getElementById('submit').style.display = 'inline';
                 informationContainer.innerHTML = '';
-                informationContainer.innerHTML = '<h3>Artist Name</h3><br><input name="artist" id="artistName" placeholder="The name of your artist..."></input><br><h3>Album Name</h3><br><input name="album" id="albumName" placeholder="The name of your album..."></input><br><h3>Track Name and Genre</h3><br><input name="track" id="trackName"placeholder="The name of your track..."></input><br><input name="genre" id="trackGenre"placeholder="The genre of your track..."></input><br><input name="url" id="url"placeholder="Your Track\'s URL"></input><br>';
+                informationContainer.innerHTML = '<h3>Artist Name</h3><br><input name="artist" id="artistName" placeholder="The name of your artist..."></input><br><h3>Album Name</h3><br><input name="album" id="albumName" placeholder="The name of your album..."></input><br><h3>Track Name and Genre</h3><br><input name="track" id="trackName"placeholder="The name of your track..."></input><br>';
                 currentButton = document.getElementById('submit');
 
                 currentButton.addEventListener('click', function () {

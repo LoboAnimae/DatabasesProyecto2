@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Update</title>
 
@@ -43,7 +43,7 @@
             box-shadow: 5px 10px 8px #888888;
         }
 
-        textarea {
+        input {
             position: relative;
             left: 500px;
             resize: none;
@@ -110,39 +110,40 @@
             height: 120px;
             background: #70869e;
         }
-
-
     </style>
 </head>
+
 <body>
-
-<nav class="header">
-    Update Form
-    <div class="goToProfile" id="goBackButton">
-        <p1 style="margin: 0px; position: relative;left: -17px;top: 16px;">Go Back</p1>
-    </div>
-</nav>
-
-
-<div class="MainContainer">
-    <label for="registrationCategory">What are you going to update?</label><br>
-
-    <select name="select_category" id="registrationCategory" onchange="changeHTML()">
-        <option value="empty">Select a Value</option>
-        <option value="artist">Artist</option>
-        <option value="album">Album</option>
-        <option value="cancion">Track</option>
-        <br>
-    </select>
-    <input id="submit" type="submit" name="button" value="Submit" style="display: none;"/>
-    <!--        <button id='submit' style="display: none">Submit</button><br>-->
+    <form action="{{ action('HomeController@updateSomething') }}" method="POST">
+        @csrf
+        <nav class="header">
+            Update Form
+            <div class="goToProfile" id="goBackButton">
+                <p1 style="margin: 0px; position: relative;left: -17px;top: 16px;">Go Back</p1>
+            </div>
+        </nav>
 
 
-</div>
+        <div class="MainContainer">
+            <label for="registrationCategory">What are you going to update?</label><br>
 
-<div class="registrationInformation" id="informationContainer">
+            <select name="select_category" id="registrationCategory" onchange="changeHTML()">
+                <option value="empty">Select a Value</option>
+                <option value="artist">Artist</option>
+                <option value="album">Album</option>
+                <option value="cancion">Track</option>
+                <br>
+            </select>
+            <input id="submit" type="submit" name="button" value="Submit" style="display: none;" />
+            <!--        <button id='submit' style="display: none">Submit</button><br>-->
 
-</div>
+
+        </div>
+
+        <div class="registrationInformation" id="informationContainer">
+
+        </div>
+    </form>
 
 </body>
 <script>
@@ -159,7 +160,7 @@
         } else if (selector.value == 'artist') {
             document.getElementById('submit').style.display = 'inline';
             informationContainer.innerHTML = '';
-            informationContainer.innerHTML = "<h3>Artist Name</h3><br><textarea id=\"artistName\" placeholder=\"The name of your artist...\"></textarea><br><br><textarea id=\"newArtistName\" placeholder=\"The replacement name...\"></textarea>";
+            informationContainer.innerHTML = "<h3>Artist Name</h3><br><textarea name=\"oldArtist\" id=\"artistName\" placeholder=\"The name of your artist...\"></textarea><br><br><textarea name=\"newArtist\" id=\"newArtistName\" placeholder=\"The replacement name...\"></textarea>";
             currentButton = document.getElementById('submit');
             currentButton.addEventListener('click', function () {
                 if (document.getElementById('artistName').value == '' && document.getElementById('newArtistName').value != '') {
@@ -182,7 +183,7 @@
         } else if (selector.value == 'album') {
             document.getElementById('submit').style.display = 'inline';
             informationContainer.innerHTML = '';
-            informationContainer.innerHTML = '<h3>Artist Name</h3><br><textarea id="artistName" placeholder="The name of your artist..."></textarea><br><h3>Album Name</h3><br><textarea id="albumName" placeholder="The name of your album..."></textarea><br><textarea id=\"newAlbumName\" placeholder=\"The replacement name...\"></textarea>';
+            informationContainer.innerHTML = '<h3>Artist Name</h3><br><textarea name=\"artist\" id="artistName" placeholder="The name of your artist..."></textarea><br><h3>Album Name</h3><br><textarea name=\"oldAlbum\" id="albumName" placeholder="The name of your album..."></textarea><br><textarea name=\"newAlbum\" id=\"newAlbumName\" placeholder=\"The replacement name...\"></textarea>';
             currentButton = document.getElementById('submit');
 
             currentButton.addEventListener('click', function () {
@@ -218,7 +219,7 @@
         } else if (selector.value == 'cancion') {
             document.getElementById('submit').style.display = 'inline';
             informationContainer.innerHTML = '';
-            informationContainer.innerHTML = '<h3>Artist Name</h3><br><textarea id="artistName" placeholder="The name of your artist..."></textarea><br><h3>Album Name</h3><br><textarea id="albumName" placeholder="The name of your album..."></textarea><br><h3>Track Name and Genre</h3><br><textarea id="trackName" placeholder="The name of your track..."></textarea><br><textarea id="newTrackName" placeholder="The new name of your track..."></textarea><br><br>';
+            informationContainer.innerHTML = '<h3>Artist Name</h3><br><textarea name="artist" id="artistName" placeholder="The name of your artist..."></textarea><br><h3>Album Name</h3><br><textarea name="album" id="albumName" placeholder="The name of your album..."></textarea><br><h3>Track Name and Genre</h3><br><textarea name="oldTrack" id="trackName" placeholder="The name of your track..."></textarea><br><textarea name="newTrack" id="newTrackName" placeholder="The new name of your track..."></textarea><br><br>';
             currentButton = document.getElementById('submit');
 
             currentButton.addEventListener('click', function () {
@@ -276,4 +277,5 @@
 
 
 </script>
+
 </html>

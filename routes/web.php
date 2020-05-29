@@ -83,6 +83,8 @@ Route::get('/generateCSV', 'HomeController@generateCSV');
 
 Route::resource('mongo', "MongoController");
 
-Route::post('/addedSomething', 'HomeController@tryOut');
+Route::post('/addedSomething', 'HomeController@addSomething');
 
 Route::post('/deleteSomething', 'HomeController@deleteSomething');
+
+Route::post('/updateSomething', 'HomeController@updateSomething');

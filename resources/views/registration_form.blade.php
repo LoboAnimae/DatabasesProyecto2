@@ -122,7 +122,7 @@
         </div>
     </nav>
 
-    <form action="{{ action('HomeController@tryOut') }}" method="POST">
+    <form action="{{ action('HomeController@addSomething') }}" method="POST">
         @csrf
         <div class="MainContainer">
             <label for="registrationCategory">What are you going to register?</label><br>
