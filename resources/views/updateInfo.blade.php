@@ -135,9 +135,6 @@
                 <br>
             </select>
             <input id="submit" type="submit" name="button" value="Submit" style="display: none;" />
-            <!--        <button id='submit' style="display: none">Submit</button><br>-->
-
-
         </div>
 
         <div class="registrationInformation" id="informationContainer">

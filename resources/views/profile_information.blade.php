@@ -41,7 +41,7 @@ Pages that can be gone to through here:
     <section class="articles">
         <article class="article1">
             <button id="search"
-                    style="margin: 0;padding: 10px;border: 0;box-shadow: 5px 10px 30px #888888;;left: 50%;background: #70869e;color: white;width: 300px;height: 50px;font-size: 20px;overflow: hidden;transition: .6s;position: relative;top: 0%;">
+                    style="margin: 0;padding: 10px;border: 0;box-shadow: 5px 10px 30px #888888;;left: 50%;background: #3B3A3B;color: white;width: 300px;height: 50px;font-size: 20px;overflow: hidden;transition: .6s;position: relative;top: 0%;">
                 Search
             </button>
             <button class="boton1" id="upload">Upload</button>
@@ -53,15 +53,56 @@ Pages that can be gone to through here:
                 <button class="boton7" id="changeRoles">Change User Roles</button>
                 <button class="boton8" id="updateInfo">Change Some Info</button>
                 <button class="boton9" id="cvsPage">Generate Invoice CVS</button>
-                <button class="boton10" id="mongoPage">Check Mongo Connection</button>
+                <button class="boton10" id="changeLog">Check the Changelog</button>
+
             @endif
 
 
         </article>
+
+        <style>
+            tr:nth-child(even) {
+                background-color: #3b3a3b;
+                color: white;
+                text-decoration: none;
+                font-size: x-large;
+            }
+
+            tr:nth-child(even) a {
+                text-decoration: none;
+                font-size: x-large;
+                background-color: #3b3a3b;
+                color: white;
+            }
+        </style>
         <hr>
         <article>
             <div class="Playlist">
-                <h2>Playlist</h2>
+                <h2>Your Tracks</h2>
+                <div class="tableContainer"
+                     style="overflow: auto;height: 45vh;position: relative;top: 34px;width: 100%;display: flex;">
+                    <table
+                        style="font-family: Arial, Helvetica, sans-serif; border-collapse: collapse; width: 100%; color: black;">
+                        @foreach ($ownedTracks as $trackstable)
+                            <tr>
+                                <td style="padding: 10px 0 10px 0; border: 1px solid #3B3A3B; text-align: left;">
+                                    {{ $trackstable->trackname }}
+                                </td>
+                                @if ($trackstable->trackurl == null)
+                                    <td> Not Available</td>
+                                @else
+                                    <td
+                                        style="font-size: x-large; text-decoration: none; color: #3B3A3B; padding: 10px 0 10px 0; border: 1px solid #3B3A3B; text-align: left; background-color: white">
+                                        <a href={{ $trackstable->trackurl }}
+                                            style="font-size: x-large; text-decoration: none; color: #3B3A3B;
+                                           background-color: white">
+                                        Listen on YouTube</a>
+                                    </td>
+                                @endif
+                            </tr>
+                        @endforeach
+                    </table>
+                </div>
             </div>
         </article>
     </section>
@@ -113,9 +154,9 @@ Pages that can be gone to through here:
             window.location.href = 'http://projectobases.test/generateCSV'
         })
 
-        const mongoConnection = document.getElementById('mongoPage')
-        mongoConnection.addEventListener('click', () => {
-            window.location.href = 'http://projectobases.test/mongo'
+        const changelog = document.getElementById('changeLog')
+        changelog.addEventListener('click', () => {
+            window.location.href = 'http://projectobases.test/changelog'
         })
 
     </script>

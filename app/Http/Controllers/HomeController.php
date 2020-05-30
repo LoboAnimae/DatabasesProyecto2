@@ -8,14 +8,15 @@ use App\invoice;
 use App\invoiceline;
 use App\modification;
 use App\roles_relations;
+use App\shoppingCart;
 use App\track;
-use App\User;
-use Carbon\Carbon;
 use Illuminate\Contracts\Support\Renderable;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Laracsv\Export;
 
 class HomeController extends Controller
 {
@@ -68,9 +69,15 @@ class HomeController extends Controller
             ->first();
 
         $roleValue = $user_role->name;
+        $ownedTracks = DB::table('invoiceline')
+            ->join('invoice', 'invoiceline.invoiceid', '=', 'invoice.invoiceid')
+            ->join('track', 'track.trackid', '=', 'invoiceline.trackid')
+            ->selectRaw(DB::raw('track.name AS trackName, track.url AS trackURL'))
+            ->where('invoice.customerid', '=', $user->id)
+            ->get();
 
 
-        return view('profile_information', compact('user', 'roleValue'));
+        return view('profile_information', compact('user', 'roleValue', 'ownedTracks'));
     }
 
 
@@ -370,7 +377,7 @@ class HomeController extends Controller
         $roleTable = new roles_relations;
         $control = DB::table('roles_relations')->where('id_user', $userID)->get();
         DB::table('roles_relations')->where('id_user', $userID)->delete();
-        DB::table('roles_relations')->insert(['id_user' => $userID, 'id_roles' => (int) $roleChanged]);
+        DB::table('roles_relations')->insert(['id_user' => $userID, 'id_roles' => (int)$roleChanged]);
         $control2 = DB::table('roles_relations')->where('id_user', $userID)->get();
         return redirect()->action('HomeController@changeRoles');
     }
@@ -393,7 +400,7 @@ class HomeController extends Controller
     public function generateCSV()
     {
         $invoice = DB::table("invoice")->get();
-        $csvExporter = new \Laracsv\Export();
+        $csvExporter = new Export();
         $csvExporter->build($invoice, ['invoiceid', 'customerid', 'invoicedate', 'billingaddress', 'billingcity', 'billingstate', 'billingcountry', 'billingpostalcode', 'total'])->download();
     }
 
@@ -424,7 +431,7 @@ class HomeController extends Controller
                 $mod_table->save();
 
                 DB::commit();
-            } catch (\Illuminate\Database\QueryException $exception) {
+            } catch (QueryException $exception) {
                 DB::rollBack();
             }
         } else if ($addingType == 'album') {
@@ -462,7 +469,7 @@ class HomeController extends Controller
                     $mod_table->save();
 
                     DB::commit();
-                } catch (\Illuminate\Database\QueryException $exception) {
+                } catch (QueryException $exception) {
                     DB::rollBack();
                 }
             } else {
@@ -533,8 +540,6 @@ class HomeController extends Controller
                             $invoiceline_table = new invoiceline();
 
 
-
-
                             // Insert into the track table
 
                             $track_table->trackid = $idtrack + 1;
@@ -565,10 +570,8 @@ class HomeController extends Controller
                                 ->first();
 
                             $idinvoice = $invoiceid->invoiceid;
-
                             $invoice_table->invoiceid = $idinvoice + 1;
                             $invoice_table->customerid = $userid;
-                            $invoice_table->invoicedate = Carbon::now();
                             $invoice_table->billingaddress = null;
                             $invoice_table->billingcity = null;
                             $invoice_table->billingstate = null;
@@ -583,7 +586,6 @@ class HomeController extends Controller
                                 ->first();
 
                             $idinvoiceline = $invoicelineid->invoicelineid;
-
                             $invoiceline_table->invoicelineid = $idinvoiceline + 1;
                             $invoiceline_table->invoiceid = $idinvoice + 1;
                             $invoiceline_table->trackid = $idtrack;
@@ -592,8 +594,9 @@ class HomeController extends Controller
                             $invoiceline_table->save();
 
                             DB::COMMIT();
-                        } catch (\Illuminate\Database\QueryException $exception) {
+                        } catch (QueryException $exception) {
                             DB::rollBack();
+                            return $exception;
                         }
                     } else {
                         return "The Album does not belong to the artist";
@@ -686,8 +689,9 @@ class HomeController extends Controller
                     ->where('name', $artist_name_formated)->delete();
 
                 DB::commit();
-            } catch (\Illuminate\Database\QueryException $exception) {
+            } catch (QueryException $exception) {
                 DB::ROLLBACK();
+                return $exception;
             }
         } else if ($deletingRequest == 'album') {
             DB::beginTransaction();
@@ -715,7 +719,7 @@ class HomeController extends Controller
                 DB::table('track')->where('albumid', $id_album)->delete();
                 DB::table('album')->where('title', $album_name_formated)->delete();
                 DB::commit();
-            } catch (\Illuminate\Database\QueryException $exception) {
+            } catch (QueryException $exception) {
                 DB::rollback();
             }
         } else if ($deletingRequest == 'cancion') {
@@ -746,7 +750,7 @@ class HomeController extends Controller
                 $trackTable->where('name', '=', $track_name_formated)
                     ->delete();
                 DB::commit();
-            } catch (\Illuminate\Database\QueryException $exception) {
+            } catch (QueryException $exception) {
                 DB::rollBack();
             }
         }
@@ -785,7 +789,7 @@ class HomeController extends Controller
                 DB::table('artist')->where('name', $old_artist)->update([
                     'name' => $artist_name_formated
                 ]);
-            } catch (\Illuminate\Database\QueryException $exception) {
+            } catch (QueryException $exception) {
                 DB::rollback();
             }
         } else if ($updateRequest == 'album') {
@@ -821,7 +825,7 @@ class HomeController extends Controller
                         'album.title' => $album_new_name_formated
                     ]);
                 DB::commit();
-            } catch (\Illuminate\Database\QueryException $exception) {
+            } catch (QueryException $exception) {
                 DB::rollback();
             }
         } else if ($updateRequest == 'cancion') {
@@ -869,10 +873,140 @@ class HomeController extends Controller
                     ]);
 
                 DB::commit();
-            } catch (\Illuminate\Database\QueryException $exception) {
+            } catch (QueryException $exception) {
                 DB::rollback();
             }
         }
         return redirect()->action('HomeController@profile');
+    }
+
+    public function addTrackToShoppingCart(Request $request)
+    {
+        $mongoShoppingCart = new shoppingCart();
+        $data = $request->trackId;
+        $user = Auth::user();
+
+        // Find the artist
+        $artist = DB::table('artist')
+            ->join('album', 'album.artistid', '=', 'artist.artistid')
+            ->join('track', 'track.albumid', '=', 'album.albumid')
+            ->where('track.trackid', '=', $data)
+            ->selectRaw(DB::raw('artist.name AS artistName, album.title AS albumTitle, track.name AS trackName, track.trackid as trackid'))
+            ->first();
+        $artistName = $artist->artistname;
+        $albumName = $artist->albumtitle;
+        $trackId = $artist->trackid;
+        $trackName = $artist->trackname;
+
+        $mongoShoppingCart->username = $user->name;
+        $mongoShoppingCart->artist = $artistName;
+        $mongoShoppingCart->album = $albumName;
+        $mongoShoppingCart->track = $trackName;
+        $mongoShoppingCart->trackid = $trackId;
+        $mongoShoppingCart->save();
+
+        return redirect()->action('HomeController@searchQuery');
+    }
+
+    public function buyTrack(Request $request)
+    {
+        $invoiceTable = new invoice();
+        $invoiceLineTable = new invoiceline();
+        $invoiceTrack = $request->trackId;
+
+        $user = Auth::user();
+        $userid = $user->id;
+
+        $price = DB::table('track')
+            ->selectRaw(DB::raw('unitprice'))
+            ->where('trackid', '=', $invoiceTrack)
+            ->first();
+        $priceGetter = $price->unitprice;
+
+
+        DB::beginTransaction();
+        try {
+            $invoiceid = DB::table('invoice')
+                ->orderBy('invoiceid', 'desc')
+                ->first();
+
+            $idinvoice = $invoiceid->invoiceid;
+
+            $invoiceTable->invoiceid = $idinvoice + 1;
+            $invoiceTable->customerid = $userid;
+            $invoiceTable->billingaddress = null;
+            $invoiceTable->billingcity = null;
+            $invoiceTable->billingstate = null;
+            $invoiceTable->billingcountry = null;
+            $invoiceTable->billingpostalcode = null;
+            $invoiceTable->total = $priceGetter;
+            $invoiceTable->save();
+
+            $idInvoiceLine = DB::table('invoiceline')
+                ->orderBy('invoicelineid', 'desc')
+                ->first();
+
+            $idInvoiceLine = $idInvoiceLine->invoicelineid;
+
+            $invoiceLineTable->invoicelineid = $idInvoiceLine + 1;
+            $invoiceLineTable->invoiceid = $idinvoice + 1;
+            $invoiceLineTable->trackid = $invoiceTrack;
+            $invoiceLineTable->unitprice = $priceGetter;
+            $invoiceLineTable->quantity = 1;
+            $invoiceLineTable->save();
+            DB::commit();
+        } catch (QueryException $exception) {
+            DB::rollBack();
+
+            return print('failed');
+        }
+        return redirect()->action('HomeController@profile');
+    }
+
+    public function changelog()
+    {
+        $user = Auth::user();
+
+        $username = $user->name;
+
+
+        $userQuery = DB::table('users')
+            ->join('roles_relations', 'users.id', '=', 'roles_relations.id_user')
+            ->where('users.name', $username)->first();
+        $userRole = $userQuery->id_roles;
+        if ($userRole != 1) {
+            return view('Error405');
+        } else {
+            $changes = DB::select(DB::raw('SELECT * FROM bitacora'));
+
+
+            return view('changelog', compact('changes'));
+        }
+    }
+
+    public function displayShoppingCart()
+    {
+        $user = Auth::user();
+        $username = $user->name;
+
+        $mongoUser = shoppingCart::where('username', '=', $username)->get();
+
+        return view('shoppingCart', compact('mongoUser'));
+
+    }
+
+    public function deleteFromShoppingCart(Request $request)
+    {
+        $user = Auth::user();
+        $username = $user->name;
+
+        $trackid = $request->trackid;
+        $trackid = (int)$trackid;
+
+        shoppingCart::where('username', '=', $username)->where('trackid', '=', $trackid)->delete();
+
+
+        return redirect()->action('HomeController@displayShoppingCart');
+
     }
 }

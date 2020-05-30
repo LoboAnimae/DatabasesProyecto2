@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
@@ -15,7 +16,7 @@
     .tableContainer {
         width: 100%;
         display: inline-grid;
-        grid-template-columns: auto auto auto;
+        grid-template-columns: 20% 30% 50%;
         grid-template-rows: 50% 50% 50%;
         overflow: hidden;
         grid-column-gap: 1em;
@@ -24,6 +25,7 @@
         position: relative;
 
     }
+
     .searcher {
         text-align: center;
     }
@@ -46,16 +48,20 @@
         box-shadow: 10px 10px 60px #aaa;
         top: 13px;
     }
+
     table {
         font-family: arial, sans-serif;
         border-collapse: collapse;
         width: 100%;
     }
 
-    td, th {
+    td,
+    th {
         border: 1px solid #dddddd;
         text-align: left;
         padding: 8px;
+        word-wrap: break-spaces;
+
     }
 
     tr:nth-child(even) {
@@ -72,6 +78,15 @@
         border-radius: 34px;
     }
 
+    #shoppingCart {
+        position: absolute;
+        right: 202px;
+        top: 24px;
+        width: 147px;
+        height: 58px;
+        background: white;
+        border-radius: 34px;
+    }
 </style>
 
 <body>
@@ -79,126 +94,111 @@
 <div class="mainContainer">
 
     <h1 style="text-align: left">Welcome to the search section!</h1>
+
     <button id="goBack">Go Back</button>
+    <button id="shoppingCart">Shopping Cart</button>
     <label style="text-align: left">Your search:</label><br>
     <div class="searcher">
         <input type="text" id="searchBox"><br>
         <input type="button" id="submit" value="Search!"/>
 
     </div>
-<div class="tableContainer" style="height: ">
-    <div class="tableContainerArtist" style="overflow: auto">
-        <h3>Artists</h3>
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Artist</th>
-            </tr>
-            @foreach($artists as $artistsTable)
+    <div class="tableContainer" style="height: ">
+        <div class="tableContainerArtist" style="overflow: auto">
+            <h3>Artists</h3>
+            <table>
                 <tr>
-                    <td>
-                        {{$artistsTable->artistid}}
-                    </td>
-                    <td>
-                        {{$artistsTable->name}}
-                    </td>
+                    <th>ID</th>
+                    <th>Artist</th>
                 </tr>
+                @foreach($artists as $artistsTable)
+                    <tr>
+                        <td>
+                            {{$artistsTable->artistid}}
+                        </td>
+                        <td>
+                            {{$artistsTable->name}}
+                        </td>
+                    </tr>
 
 
-            @endforeach
-        </table>
-    </div>
+                @endforeach
+            </table>
+        </div>
 
-    <div class="tableContainerAlbums" style="overflow: auto">
-        <h3>Albums</h3>
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Album Title</th>
-                <th>Artist</th>
-
-            </tr>
-            @foreach($albums as $albumTable)
+        <div class="tableContainerAlbums" style="overflow: auto">
+            <h3>Albums</h3>
+            <table>
                 <tr>
-                    <td>
-                        {{$albumTable->id}}
-                    </td>
-                    <td>
-                        {{$albumTable->title}}
-                    </td>
-                    <td>
-                        {{$albumTable->artist}}
-                    </td>
-                </tr>
-
-
-            @endforeach
-        </table>
-
-    </div>
-    <div class="tableContainerTracks" style="overflow: auto">
-        <h3>Tracks</h3>
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Track Title</th>
-                <th>Album</th>
-                <th>Artist</th>
-                <th>Media Type</th>
-                <th>Genre</th>
-                <th>Composer</th>
-                <th>Duration</th>
-                <th>File Size</th>
-                <th>Unit Size</th>
-
-
-            </tr>
-            @foreach($tracks as $trackTable)
-                <tr>
-                    <td>
-                        {{$trackTable->trackid}}
-                    </td>
-                      <td>
-                        {{$trackTable->track}}
-                    </td>
-                      <td>
-                        {{$trackTable->album}}
-                    </td>
-                      <td>
-                        {{$trackTable->artist}}
-                    </td>
-                      <td>
-                        {{$trackTable->media}}
-                    </td>
-                      <td>
-                        {{$trackTable->genre}}
-                    </td>
-                      <td>
-                        {{$trackTable->composer}}
-                    </td>
-                      <td>
-                        {{$trackTable->duration}}
-                    </td>
-                      <td>
-                        {{$trackTable->size}}
-                    </td>
-                    <td>
-                        {{$trackTable->price}}
-                    </td>
+                    <th>ID</th>
+                    <th>Album Title</th>
+                    <th>Artist</th>
 
                 </tr>
+                @foreach($albums as $albumTable)
+                    <tr>
+                        <td>
+                            {{$albumTable->id}}
+                        </td>
+                        <td>
+                            {{$albumTable->title}}
+                        </td>
+                        <td>
+                            {{$albumTable->artist}}
+                        </td>
+                    </tr>
 
 
-            @endforeach
-        </table>
+                @endforeach
+            </table>
 
+        </div>
+        <div class="tableContainerTracks" style="overflow: auto">
+            <h3>Tracks</h3>
+            <table>
+                <tr>
+                    <th>Track ID</th>
+                    <th>Track Title</th>
+                    <th>Album</th>
+                    <th>Artist</th>
+                    <th>Unit Size</th>
+                    <th>Buy Track</th>
+                </tr>
+                @foreach($tracks as $trackTable)
+                    <tr>
+                        <td style="width: 5%;">
+                            {{ $trackTable->trackid }}
+                        </td>
+                        <td style="width: 25%;">
+                            {{$trackTable->track}}
+                        </td>
+                        <td style="width: 25%;">
+                            {{$trackTable->album}}
+                        </td>
+                        <td style="width: 20%;">
+                            {{$trackTable->artist}}
+                        </td>
+                        <td style="width: 10%;">
+                            {{$trackTable->price}}
+                        </td>
+                        <td>
+                            <form action="{{ action('HomeController@addTrackToShoppingCart') }}" method="POST">
+                                @csrf
+                                <button name="trackId" value={{ $trackTable->trackid }}>Add to Cart</button>
+                            </form>
+
+                    </tr>
+
+
+                @endforeach
+            </table>
+
+        </div>
     </div>
-</div>
 </div>
 
 </body>
 <script>
-
     const searchButton = document.getElementById('submit');
     const textBox = document.getElementById('searchBox');
     searchButton.addEventListener('click', function () {
@@ -218,7 +218,12 @@
     goBack.addEventListener('click', function () {
         window.location.href = 'http://projectobases.test/profile'
     })
+    const shoppingCart = document.getElementById('shoppingCart')
+    shoppingCart.addEventListener('click', function () {
+        window.location.href = 'http://projectobases.test/shoppingCart'
+    })
 
 
 </script>
+
 </html>

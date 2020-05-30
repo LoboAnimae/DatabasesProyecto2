@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
@@ -79,7 +80,7 @@
 
         nav {
             margin: 0;
-            background: #70869e;
+            background: #3b3a3b;
             width: 100%;
             display: flex;
             align-items: center;
@@ -191,7 +192,7 @@
             box-shadow: 5px 10px 30px #888888;
             position: absolute;
             left: 50%;
-            background: #70869e;
+            background: #3b3a3b;
             color: white;
             width: 300px;
             height: 50px;
@@ -210,7 +211,7 @@
             box-shadow: 5px 10px 30px #888888;
             position: absolute;
             left: 50%;
-            background: #70869e;
+            background: #3b3a3b;
             color: white;
             width: 300px;
             height: 50px;
@@ -228,7 +229,7 @@
             box-shadow: 5px 10px 30px #888888;
             position: absolute;
             left: 81%;
-            background: #70869e;
+            background: #3b3a3b;
             color: white;
             width: 300px;
             height: 50px;
@@ -246,7 +247,7 @@
             box-shadow: 5px 10px 30px #888888;
             position: absolute;
             left: 81%;
-            background: #70869e;
+            background: #3b3a3b;
             color: white;
             width: 300px;
             height: 50px;
@@ -265,7 +266,7 @@
             box-shadow: 5px 10px 30px #888888;
             position: absolute;
             left: 50%;
-            background: #70869e;
+            background: #3b3a3b;
             color: white;
             width: 300px;
             height: 50px;
@@ -303,7 +304,7 @@
             box-shadow: 5px 10px 30px #888888;
             position: absolute;
             left: 81%;
-            background: #70869e;
+            background: #3b3a3b;
             color: white;
             width: 300px;
             height: 50px;
@@ -320,7 +321,7 @@
             box-shadow: 5px 10px 30px #888888;
             position: absolute;
             left: 81%;
-            background: #70869e;
+            background: #3b3a3b;
             color: white;
             width: 300px;
             height: 50px;
@@ -337,7 +338,7 @@
             box-shadow: 5px 10px 30px #888888;
             position: absolute;
             left: 113%;
-            background: #70869e;
+            background: #3b3a3b;
             color: white;
             width: 300px;
             height: 50px;
@@ -354,7 +355,7 @@
             box-shadow: 5px 10px 30px #888888;
             position: absolute;
             left: 113%;
-            background: #70869e;
+            background: #3b3a3b;
             color: white;
             width: 300px;
             height: 50px;
@@ -427,7 +428,7 @@
 
         .Playlist {
             margin: 0;
-            background: #70869e;
+            background: #3b3a3b;
             height: 50px;
             color: white;
             text-align: -webkit-center;
@@ -486,14 +487,15 @@
 
         }
 
-        ul, ol {
+        ul,
+        ol {
             list-style: none;
 
         }
 
         .Nav li a {
-            background-color: #000;
-            color: #fff;
+            background-color: #fff;
+            color: #3B3A3B;
             text-decoration: none;
             padding: 10px 15px;
             display: block;
@@ -506,6 +508,7 @@
 
         .Nav li a:hover {
             background-color: #434343;
+            color: white;
 
         }
 
@@ -518,10 +521,9 @@
         .Nav li:hover > ul {
             display: block;
         }
-
-
     </style>
 </head>
+
 <body>
 <nav>
     {{--    <div>--}}
@@ -540,7 +542,7 @@
         <ul class="Nav">
             <li><a href="">Options</a>
                 <ul>
-                    <li><a href="http://projectobases.test/Settings">Settings</a>
+                    <li><a href="http://projectobases.test/settings">Settings</a>
                     </li>
                     <li><a href="http://projectobases.test/register_new_info">Register</a>
                     </li>
@@ -590,4 +592,5 @@
 
 </script>
 </body>
+
 </html>

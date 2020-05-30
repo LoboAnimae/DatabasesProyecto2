@@ -83,8 +83,19 @@ Route::get('/generateCSV', 'HomeController@generateCSV');
 
 Route::resource('mongo', "MongoController");
 
+// Post Resources
 Route::post('/addedSomething', 'HomeController@addSomething');
 
 Route::post('/deleteSomething', 'HomeController@deleteSomething');
 
 Route::post('/updateSomething', 'HomeController@updateSomething');
+
+Route::post('/buyTrack', 'HomeController@buyTrack');
+
+Route::get('/changelog', 'HomeController@changeLog');
+
+Route::post('/addTrackToShoppingCart', 'HomeController@addTrackToShoppingCart');
+
+Route::get('/shoppingCart', 'HomeController@displayShoppingCart');
+
+Route::post('/deleteFromShoppingCart', 'HomeController@deleteFromShoppingCart');
