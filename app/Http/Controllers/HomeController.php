@@ -893,6 +893,7 @@ class HomeController extends Controller
             ->where('track.trackid', '=', $data)
             ->selectRaw(DB::raw('artist.name AS artistName, album.title AS albumTitle, track.name AS trackName, track.trackid as trackid'))
             ->first();
+
         $artistName = $artist->artistname;
         $albumName = $artist->albumtitle;
         $trackId = $artist->trackid;
@@ -903,6 +904,7 @@ class HomeController extends Controller
         $mongoShoppingCart->album = $albumName;
         $mongoShoppingCart->track = $trackName;
         $mongoShoppingCart->trackid = $trackId;
+
         $mongoShoppingCart->save();
 
         return redirect()->action('HomeController@searchQuery');
