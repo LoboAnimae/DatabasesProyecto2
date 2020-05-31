@@ -7,6 +7,7 @@ use App\artist;
 use App\invoice;
 use App\invoiceline;
 use App\modification;
+use App\reproductions;
 use App\roles_relations;
 use App\shoppingCart;
 use App\track;
@@ -86,7 +87,7 @@ class HomeController extends Controller
             ->join('track', 'track.trackid', '=', 'invoiceline.trackid')
             ->join('album', 'track.albumid', '=', 'album.albumid')
             ->join('artist', 'artist.artistid', '=', 'album.artistid')
-            ->selectRaw(DB::raw('artist.name AS artistName, album.title AS albumTitle, track.name AS trackName, track.url AS trackURL'))
+            ->selectRaw(DB::raw('artist.name AS artistName, album.title AS albumTitle, track.trackid AS trackId, track.name AS trackName, track.url AS trackURL'))
             ->where('invoice.customerid', '=', $user->id)
             ->get();
 
@@ -1205,5 +1206,153 @@ class HomeController extends Controller
         return view('searchQuery', compact('artists', 'albums', 'tracks'));
 
 
+    }
+
+
+    public function simulateSales(Request $request)
+    {
+
+
+        $counter = 0;
+        $hours = rand(0, 9);
+        $minutes = rand(0, 9);
+        $seconds = rand(0, 9);
+        $year = $request->year;
+        $month = $request->month;
+        $day = $request->day;
+
+        switch (strtoupper($month)) {
+            case 'ENERO':
+            case 'JANUARY':
+                $month = 1;
+                break;
+            case 'FEBRERO':
+            case 'FEBRUARY':
+                $month = 2;
+                break;
+            case 'MARZO':
+            case 'MARCH':
+                $month = 3;
+                break;
+            case 'ABRIL':
+            case 'APRIL':
+                $month = 4;
+                break;
+            case 'MAYO':
+            case 'MAY':
+                $month = 5;
+                break;
+            case 'JUNIO':
+            case 'JUNE':
+                $month = 6;
+                break;
+            case 'JULIO':
+            case 'JULY':
+                $month = 7;
+                break;
+            case 'AGOSTO':
+            case 'AUGUST':
+                $month = 8;
+                break;
+            case 'SEPTIEMBRE':
+            case 'SEPTEMBER':
+                $month = 9;
+                break;
+            case 'OCTUBRE':
+            case 'OCTOBER':
+                $month = 10;
+                break;
+            case 'NOVIEMBRE':
+            case 'NOVEMBER':
+                $month = 11;
+                break;
+            case 'DICIEMBRE':
+            case 'DECEMBER':
+                $month = 12;
+                break;
+        }
+
+
+        $date = $year . '-' . $month . '-' . $day . ' ' . '0' . $hours . ':0' . $minutes . ':0' . $seconds;
+        while ($counter < $request->iterations) {
+            try {
+                DB::beginTransaction();
+                $id = rand(1, 1000);
+                $userCount = DB::table('users')->count();
+                $user_id = rand(1, $userCount);
+                $trackCount = DB::table('track')->count();
+                $idtrack = rand(1, $trackCount);
+                $track = DB::table('track')->where('trackid', '=', $idtrack)->first();
+
+                $location = DB::table('randomlocations')->where('locationid', '=', $id)->first();
+                $invoice_table = new invoice();
+                $invoiceline_table = new invoiceline();
+                $invoiceid = DB::table('invoice')
+                    ->orderBy('invoiceid', 'desc')
+                    ->first();
+                $idinvoice = $invoiceid->invoiceid;
+                $invoice_table->invoiceid = $idinvoice + 1;
+                $invoice_table->customerid = $user_id;
+                $invoice_table->billingaddress = $location->billingaddress;
+                $invoice_table->billingcity = $location->billingcity;
+                $invoice_table->billingstate = $location->billingstate;
+                $invoice_table->billingcountry = $location->billingcountry;
+                $invoice_table->billingpostalcode = $location->billingpostalcode;
+                $invoice_table->invoicedate = $date;
+                $invoice_table->total = $track->unitprice;
+                $invoice_table->save();// Insert into InvoiceLine Table
+                $invoicelineid = DB::table('invoiceline')
+                    ->orderBy('invoicelineid', 'desc')
+                    ->first();
+                $idinvoiceline = $invoicelineid->invoicelineid;
+                $invoiceline_table->invoicelineid = $idinvoiceline + 1;
+                $invoiceline_table->invoiceid = $idinvoice + 1;
+                $invoiceline_table->trackid = $idtrack;
+                $invoiceline_table->unitprice = (float)$track->unitprice;
+                $invoiceline_table->quantity = 1;
+                $invoiceline_table->save();
+
+                // Reproduction Side
+                $user_id = rand(1, $userCount);
+                $idtrack = rand(1, $trackCount);
+
+                $reproducedTable = new reproductions();
+
+                $reproducedTable->trackid = $idtrack;
+                $reproducedTable->userid = $user_id;
+                $reproducedTable->reproduceddate = $date;
+                $reproducedTable->save();
+
+                $counter++;
+                DB::commit();
+            } catch (QueryException $e) {
+                DB::rollBack();
+                return $e;
+            }
+        }
+        return redirect()->action('HomeController@profile');
+    }
+
+    public function reproduce(Request $request)
+    {
+        $user = Auth::user();
+        $username = $user->id;
+
+
+        $reproducedTable = new reproductions();
+        $link = DB::table('track')->where('trackid', '=', $request->playButton)
+            ->first();
+        try {
+            DB::beginTransaction();
+            $reproducedTable->trackid = $request->playButton;
+            $reproducedTable->userid = $username;
+            $reproducedTable->save();
+            DB::commit();
+        } catch (QueryException $e) {
+            DB::rollBack();
+            return $e;
+        }
+
+        return redirect($link->url);
     }
 }

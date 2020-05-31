@@ -54,6 +54,16 @@ Pages that can be gone to through here:
                 <button class="boton8" id="updateInfo">Change Some Info</button>
                 <button class="boton9" id="cvsPage">Generate Invoice CVS</button>
                 <button class="boton10" id="changeLog">Check the Changelog</button>
+                <div class="inputContainer">
+                    <form id="simulationForm" action="{{ action('HomeController@simulateSales') }}" method="POST">
+                        @csrf
+                        <input name="year" placeholder="Year">
+                        <input name="month" placeholder="Month">
+                        <input name="day" placeholder="Day">
+                        <input name="iterations" placeholder="How Many Sales?">
+                        <button style="left: 0px; background-color: #3b3a3b;" id="simulateButton">Simulate!</button>
+                    </form>
+                </div>
 
             @endif
 
@@ -61,6 +71,21 @@ Pages that can be gone to through here:
         </article>
 
         <style>
+            .inputContainer {
+                margin: 0;
+                padding: 0;
+                position: absolute;
+                right: -479px;
+                top: 163px;
+                display: flex;
+                flex-direction: column;
+            }
+
+            #simulationForm {
+                display: flex;
+                flex-direction: column;
+            }
+
             tr:nth-child(even) {
                 background-color: #3b3a3b;
                 color: white;
@@ -74,6 +99,8 @@ Pages that can be gone to through here:
                 background-color: #3b3a3b;
                 color: white;
             }
+
+
         </style>
         <hr>
         <article>
@@ -99,9 +126,14 @@ Pages that can be gone to through here:
                                 @else
                                     <td
                                         style="font-size: x-large; text-decoration: none; color: #3B3A3B;  padding: 20px;; border: 1px solid #3B3A3B; background-color: white; text-align: center">
-                                        <a href={{ $trackstable->trackurl }} style="font-size: x-large; text-decoration:
-                                           none; color: #3B3A3B; background-color: white">
-                                        Listen on YouTube</a>
+                                        <form action="{{ action('HomeController@reproduce') }}" method="POST">
+                                            @csrf
+                                            <button id="playButton" name="playButton" style="font-size: x-large; text-decoration:
+                                           none; color: #3B3A3B; background-color: white; left: 0; transition: all 0.5s;"
+                                                    value="{{ $trackstable->trackid }}">Listen on Youtube
+                                            </button>
+
+                                        </form>
                                     </td>
                                 @endif
                             </tr>

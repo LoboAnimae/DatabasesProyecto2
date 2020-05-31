@@ -103,3 +103,7 @@ Route::post('/deleteFromShoppingCart', 'HomeController@deleteFromShoppingCart');
 Route::post('/buyTrackPass', 'HomeController@buyTrackPass');
 
 Route::post('/buyAll', 'HomeController@buyAll');
+
+Route::post('/simulateSales', 'HomeController@simulateSales');
+
+Route::post('/reproduce', 'HomeController@reproduce');
