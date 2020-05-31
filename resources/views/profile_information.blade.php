@@ -85,17 +85,22 @@ Pages that can be gone to through here:
                         style="font-family: Arial, Helvetica, sans-serif; border-collapse: collapse; width: 100%; color: black;">
                         @foreach ($ownedTracks as $trackstable)
                             <tr>
-                                <td style="padding: 10px 0 10px 0; border: 1px solid #3B3A3B; text-align: left;">
+                                <td style="width: 20%; word-wrap: break-spaces; text-align: center; font-weight: bolder; padding: 20px;">
+                                    {{ $trackstable->artistname }}
+                                </td>
+                                <td style="width: 20%; word-wrap: break-spaces; text-align: center; padding: 20px;">
+                                    {{ $trackstable->albumtitle }}
+                                </td>
+                                <td style=" border: 1px solid #3B3A3B; text-align: center;  padding: 20px;">
                                     {{ $trackstable->trackname }}
                                 </td>
                                 @if ($trackstable->trackurl == null)
-                                    <td> Not Available</td>
+                                    <td style="text-align: center"> Not Available</td>
                                 @else
                                     <td
-                                        style="font-size: x-large; text-decoration: none; color: #3B3A3B; padding: 10px 0 10px 0; border: 1px solid #3B3A3B; text-align: left; background-color: white">
-                                        <a href={{ $trackstable->trackurl }}
-                                            style="font-size: x-large; text-decoration: none; color: #3B3A3B;
-                                           background-color: white">
+                                        style="font-size: x-large; text-decoration: none; color: #3B3A3B;  padding: 20px;; border: 1px solid #3B3A3B; background-color: white; text-align: center">
+                                        <a href={{ $trackstable->trackurl }} style="font-size: x-large; text-decoration:
+                                           none; color: #3B3A3B; background-color: white">
                                         Listen on YouTube</a>
                                     </td>
                                 @endif

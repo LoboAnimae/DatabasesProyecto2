@@ -113,12 +113,55 @@
             background-color: #dddddd;
         }
 
+        #buyAll {
+            position: fixed;
+            bottom: 0;
+            opacity: 0;
+            right: 0;
+            height: 10vh;
+            width: 30vw;
+            background-color: transparent;
+            border-radius: 20px;
+            border: 3px solid #3b3a3b;
+            font-size: xx-large;
+            color: #3b3a3b;
+            box-sizing: border-box;
+            transition: all 0.5s;
+            animation: callAttention 2s forwards;
+        }
+
+        #buyAll:hover {
+            border: 3px solid #3b3a3b;
+            background-color: #3b3a3b;
+            color: #ffffff;
+        }
+
+        @keyframes callAttention {
+            0% {
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            75% {
+                background-color: #3b3a3b;
+                color: #ffffff;
+            }
+            100% {
+                background-color: transparent;
+                color: #3b3a3b;
+                opacity: 1;
+            }
+        }
+
+
     </style>
 </head>
 <body>
 
 <div class="title">
     <div id="textContainer">Your Shopping Cart</div>
+
     <button id="goBackButton" onClick="history.go(-1)">Go Back</button>
 </div>
 <div class="shoppingCartContainer">
@@ -153,8 +196,12 @@
                 </tr>
             @endforeach
         </table>
+
     </div>
 </div>
-
+<form action="{{ action('HomeController@buyAll') }}" method="POST">
+    @csrf
+    <button id="buyAll">Buy All!</button>
+</form>
 </body>
 </html>

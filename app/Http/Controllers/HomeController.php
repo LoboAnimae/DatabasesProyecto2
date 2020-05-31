@@ -84,10 +84,11 @@ class HomeController extends Controller
         $ownedTracks = DB::table('invoiceline')
             ->join('invoice', 'invoiceline.invoiceid', '=', 'invoice.invoiceid')
             ->join('track', 'track.trackid', '=', 'invoiceline.trackid')
-            ->selectRaw(DB::raw('track.name AS trackName, track.url AS trackURL'))
+            ->join('album', 'track.albumid', '=', 'album.albumid')
+            ->join('artist', 'artist.artistid', '=', 'album.artistid')
+            ->selectRaw(DB::raw('artist.name AS artistName, album.title AS albumTitle, track.name AS trackName, track.url AS trackURL'))
             ->where('invoice.customerid', '=', $user->id)
             ->get();
-
 
         return view('profile_information', compact('user', 'roleValue', 'ownedTracks'));
     }
@@ -1081,6 +1082,37 @@ class HomeController extends Controller
         return true;
     }
 
+    public function deleteFromShoppingCartMakeshift(int $trackid)
+    {
+        $user = Auth::user();
+        $username = $user->name;
+
+        shoppingCart::where('username', '=', $username)->where('trackid', '=', $trackid)->delete();
+
+
+        return redirect()->action('HomeController@displayShoppingCart');
+    }
+
+    /**
+     * Buys all the tracks
+     *
+     * @return RedirectResponse
+     */
+    public function buyAll()
+    {
+        $user = Auth::user();
+        $username = $user->name;
+
+        $mongoUser = shoppingCart::where('username', '=', $username)->get();
+
+        foreach ($mongoUser as $info) {
+            $trackId = $info->trackid;
+            $this->buyTrack($trackId);
+            $this->deleteFromShoppingCartMakeshift($trackId);
+        }
+        return redirect()->action('HomeController@displayShoppingCart');
+    }
+
     /**
      * Generates the changelog
      *
@@ -1121,17 +1153,6 @@ class HomeController extends Controller
 
         return view('shoppingCart', compact('mongoUser'));
 
-    }
-
-    public function deleteFromShoppingCartMakeshift(int $trackid)
-    {
-        $user = Auth::user();
-        $username = $user->name;
-
-        shoppingCart::where('username', '=', $username)->where('trackid', '=', $trackid)->delete();
-
-
-        return redirect()->action('HomeController@displayShoppingCart');
     }
 
     /**
