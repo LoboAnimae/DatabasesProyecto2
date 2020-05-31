@@ -531,18 +531,14 @@ class HomeController extends Controller
                 print('Artist not found. Couldn\'t add album.');
             }
         } else if ($addingType == 'cancion') {
-            $user = Auth::user();
-            $userid = $user->id;
-            //      Get the data from the URL
+
+            // Get data from POST
             $artist_name_formated = $request->get('artist');
             $album_name_formated = $request->get('album');
             $track_name_formated = $request->get('track');
             $track_url_formatted = $request->get('url');
 
 
-            //        instantiate table
-
-            //
             ////        ARTIST SECTION
             ////        check if the artist exists (count must be larger than 0)
             $artistExists = DB::table('artist')->where('name', $artist_name_formated)->count();
@@ -570,10 +566,10 @@ class HomeController extends Controller
             print($id_album);
             ////        Check if the Album belongs to the artist (Count must be larger than 0)
             $albumBelongsToArtist = DB::table('artist')
-                ->join('album', 'artist.artistid', '=', 'artist.artistid')
+                ->join('album', 'album.artistid', '=', 'artist.artistid')
                 ->count();
             print($albumBelongsToArtist);
-            //
+
             //        TRACK SECTION
             //       Count how many tracks there are
             $trackid = DB::table('track')
@@ -583,14 +579,17 @@ class HomeController extends Controller
             $idtrack = $trackid->trackid;
 
 
+            /** Inserts the track to the table */
             if ($artistExists > 0) {
                 if ($albumExists > 0) {
                     if ($albumBelongsToArtist > 0) {
                         DB::beginTransaction();
                         try {
                             // Instantiate the other tables
+                            $user = Auth::user();
+                            $user_id = $user->id;
+
                             $track_table = new track();
-//                            $mod_table = new modification();
                             $invoice_table = new invoice();
                             $invoiceline_table = new invoiceline();
 
@@ -607,12 +606,9 @@ class HomeController extends Controller
                             $track_table->bytes = rand(90000, 300000);
                             $track_table->unitprice = 0.99;
                             $track_table->hidden_status = 0;
-                            $track_table->added_by = $userid;
+                            $track_table->added_by = $user_id;
                             $track_table->url = $track_url_formatted;
                             $track_table->save();
-
-                            print('Added to track Table');
-                            // Insert into the modification table
 
                             // Insert into the invoice table
                             $invoiceid = DB::table('invoice')
@@ -621,7 +617,7 @@ class HomeController extends Controller
 
                             $idinvoice = $invoiceid->invoiceid;
                             $invoice_table->invoiceid = $idinvoice + 1;
-                            $invoice_table->customerid = $userid;
+                            $invoice_table->customerid = $user_id;
                             $invoice_table->billingaddress = null;
                             $invoice_table->billingcity = null;
                             $invoice_table->billingstate = null;
@@ -638,7 +634,7 @@ class HomeController extends Controller
                             $idinvoiceline = $invoicelineid->invoicelineid;
                             $invoiceline_table->invoicelineid = $idinvoiceline + 1;
                             $invoiceline_table->invoiceid = $idinvoice + 1;
-                            $invoiceline_table->trackid = $idtrack;
+                            $invoiceline_table->trackid = $idtrack + 1;
                             $invoiceline_table->unitprice = 0.0;
                             $invoiceline_table->quantity = 1;
                             $invoiceline_table->save();
@@ -1137,6 +1133,37 @@ class HomeController extends Controller
 
 
         return redirect()->action('HomeController@displayShoppingCart');
+
+    }
+
+    /**
+     * Returns the view and allows the user to search for something
+     *
+     * @param int    $searcher Announces if something is being searched for or not
+     * @param string $word     Word to be searched
+     * @return Application|Factory|View
+     */
+    public function searchQuery($searcher = 1, $word = '')
+    {
+
+        $artists = DB::table('artist')->get();
+        $albums = DB::table('album')
+            ->join('artist', 'album.artistid', '=', 'artist.artistid')
+            ->selectRaw(DB::raw('artist.name as artist, album.title as title, album.albumid as id'))
+            ->get();
+        $tracks = DB::table('track')
+            ->join('album', 'track.albumid', '=', 'album.albumid')
+            ->join('artist', 'album.artistid', '=', 'artist.artistid')
+            ->join('mediatype', 'track.mediatypeid', '=', 'mediatype.mediatypeid')
+            ->join('genre', 'track.genreid', '=', 'genre.genreid')
+//            ->join('users', 'track.added_by', '=', 'users.id')
+            ->selectRaw(DB::raw('track.trackid as trackid, track.name as track, album.title as album, artist.name as artist, mediatype.name as media, genre.name as genre, track.composer as composer, track.milliseconds as duration, track.bytes as size, track.unitprice as price'))
+            ->where('hidden_status', '!=', '1')
+            ->get();
+
+
+        return view('searchQuery', compact('artists', 'albums', 'tracks'));
+
 
     }
 }
