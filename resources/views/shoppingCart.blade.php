@@ -76,13 +76,50 @@
             width: 75%;
         }
 
+        table {
+            width: 100%;
+            font-size: xx-large;
+        }
+
+        #buyNow {
+            height: 100%;
+            width: 100%;
+            background-color: #d41c27;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: xx-large;
+            cursor: pointer;
+            transition: all 1s;
+        }
+
+        #buyNow:hover {
+            transform: scale(1.1) translateX(50px);
+
+
+        }
+
+        #delete {
+            background-color: transparent;
+            border: none;
+        }
+
+        #delete:hover {
+            text-decoration: underline #3b3a3b;
+            color: #3b3a3b;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+
     </style>
 </head>
 <body>
 
 <div class="title">
     <div id="textContainer">Your Shopping Cart</div>
-    <button id="goBackButton">Go Back</button>
+    <button id="goBackButton" onClick="history.go(-1)">Go Back</button>
 </div>
 <div class="shoppingCartContainer">
     <div id="yourItems">
@@ -97,14 +134,20 @@
             </tr>
             @foreach($mongoUser as $mongoUserTable)
                 <tr>
-                    <td style="width: 30%; text-align: center">{{ $mongoUserTable->artist }}</td>
-                    <td style="width: 30%; text-align: center">{{ $mongoUserTable->album }}</td>
-                    <td style="width: 40%; text-align: center">{{ $mongoUserTable->track }}</td>
+                    <td style="width: 20%; text-align: center">{{ $mongoUserTable->artist }}</td>
+                    <td style="width: 20%; text-align: center">{{ $mongoUserTable->album }}</td>
+                    <td style="width: 30%; text-align: center">{{ $mongoUserTable->track }}</td>
 
+                    <form action="{{ action('HomeController@buyTrackPass') }}" method="POST">
+                        @csrf
+                        <td style="width: 25%">
+                            <button id="buyNow" name="trackid" value="{{ $mongoUserTable->trackid }}">Buy Now!</button>
+                        </td>
+                    </form>
                     <form action="{{action('HomeController@deleteFromShoppingCart')}}" method="POST">
                         @csrf
-                        <td>
-                            <button name="trackid" value="{{ $mongoUserTable->trackid }}">Delete</button>
+                        <td style="width: 25%">
+                            <button id="delete" name="trackid" value="{{ $mongoUserTable->trackid }}">Delete</button>
                         </td>
                     </form>
                 </tr>

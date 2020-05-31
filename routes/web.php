@@ -99,3 +99,5 @@ Route::post('/addTrackToShoppingCart', 'HomeController@addTrackToShoppingCart');
 Route::get('/shoppingCart', 'HomeController@displayShoppingCart');
 
 Route::post('/deleteFromShoppingCart', 'HomeController@deleteFromShoppingCart');
+
+Route::post('/buyTrackPass', 'HomeController@buyTrackPass');

@@ -1012,21 +1012,29 @@ class HomeController extends Controller
         return redirect()->action('HomeController@searchQuery');
     }
 
+    public function buyTrackPass(Request $request)
+    {
+        $trackid = $request->trackid;
+        $checker = $this->buyTrack($trackid);
+        if ($checker == false) return print('Couldn\'t buy this from your cart');
+        $this->deleteFromShoppingCartMakeshift($trackid);
+        return redirect()->action('HomeController@displayShoppingCart');
+    }
 
     /**
      * Function that allows for a track to be added to the database of "obtained tracks"
      *
-     * @param int $TrackId Id to be sent to buy
+     * @param int $trackId
      * @return bool|Exception|QueryException
      */
-    public function buyTrack(int $TrackId)
+    public function buyTrack(int $trackId)
     {
         $invoiceTable = new invoice();
         $invoiceLineTable = new invoiceline();
-        $invoiceTrack = $request->trackId;
+        $invoiceTrack = $trackId;
 
         $user = Auth::user();
-        $userid = $user->name;
+        $userid = $user->id;
 
         $price = DB::table('track')
             ->selectRaw(DB::raw('unitprice'))
@@ -1068,7 +1076,7 @@ class HomeController extends Controller
             DB::commit();
         } catch (QueryException $exception) {
             DB::rollBack();
-            return false;
+            return dd($exception);
         }
         return true;
     }
@@ -1113,6 +1121,17 @@ class HomeController extends Controller
 
         return view('shoppingCart', compact('mongoUser'));
 
+    }
+
+    public function deleteFromShoppingCartMakeshift(int $trackid)
+    {
+        $user = Auth::user();
+        $username = $user->name;
+
+        shoppingCart::where('username', '=', $username)->where('trackid', '=', $trackid)->delete();
+
+
+        return redirect()->action('HomeController@displayShoppingCart');
     }
 
     /**
