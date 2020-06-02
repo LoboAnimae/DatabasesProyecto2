@@ -162,7 +162,7 @@
 <div class="title">
     <div id="textContainer">Your Shopping Cart</div>
 
-    <button id="goBackButton" onClick="history.go(-1)">Go Back</button>
+    <button id="goBackButton" onClick="goBack()">Go Back</button>
 </div>
 <div class="shoppingCartContainer">
     <div id="yourItems">
@@ -203,5 +203,11 @@
     @csrf
     <button id="buyAll">Buy All!</button>
 </form>
+<script>
+    function goBack() {
+        window.location = '/searchQuery'
+
+    }
+</script>
 </body>
 </html>

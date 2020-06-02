@@ -6,9 +6,11 @@ use App\album;
 use App\artist;
 use App\invoice;
 use App\invoiceline;
+use App\invoiceSaver;
 use App\modification;
 use App\reproductions;
 use App\roles_relations;
+use App\shinvoiceSaver;
 use App\shoppingCart;
 use App\track;
 use Exception;
@@ -1038,19 +1040,21 @@ class HomeController extends Controller
             ->join('album', 'album.artistid', '=', 'artist.artistid')
             ->join('track', 'track.albumid', '=', 'album.albumid')
             ->where('track.trackid', '=', $data)
-            ->selectRaw(DB::raw('artist.name AS artistName, album.title AS albumTitle, track.name AS trackName, track.trackid as trackid'))
+            ->selectRaw(DB::raw('artist.name AS artistName, album.title AS albumTitle, track.name AS trackName, track.trackid as trackid, track.unitprice as price'))
             ->first();
 
         $artistName = $artist->artistname;
         $albumName = $artist->albumtitle;
         $trackId = $artist->trackid;
         $trackName = $artist->trackname;
+        $trackPrice = $artist->price;
 
         $mongoShoppingCart->username = $user->name;
         $mongoShoppingCart->artist = $artistName;
         $mongoShoppingCart->album = $albumName;
         $mongoShoppingCart->track = $trackName;
         $mongoShoppingCart->trackid = $trackId;
+        $mongoShoppingCart->price = $trackPrice;
 
         $mongoShoppingCart->save();
 
@@ -1142,19 +1146,45 @@ class HomeController extends Controller
      *
      * @return RedirectResponse
      */
-    public function buyAll()
+    public function confirmBuyAll()
     {
         $user = Auth::user();
         $username = $user->name;
 
         $mongoUser = shoppingCart::where('username', '=', $username)->get();
+        $mongoSaver = shoppingCart::where('username', '=', $username)->get();
+
+        $pdfCreated = app('App\Http\Controllers\PDFController')->pdf($mongoSaver);
+
+        $mongoSales = new invoiceSaver();
+
+        foreach ($mongoUser as $sale) {
+            $mongoSales->user = $username;
+            $mongoSales->track = $sale->trackid;
+        }
 
         foreach ($mongoUser as $info) {
             $trackId = $info->trackid;
             $this->buyTrack($trackId);
             $this->deleteFromShoppingCartMakeshift($trackId);
         }
-        return redirect()->action('HomeController@displayShoppingCart');
+        return $pdfCreated;
+    }
+
+    public function BuyAll()
+    {
+        $user = Auth::user();
+        $username = $user->name;
+
+        $mongoUser = shoppingCart::where('username', '=', $username)->get();
+
+        if ($mongoUser != null) {
+            return view('checkout', compact('mongoUser'));
+        } else {
+            return view('shoppingCart');
+        }
+
+
     }
 
     /**

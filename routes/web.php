@@ -116,3 +116,5 @@ Route::get('/adminStats', function () {
 Route::post('/displayAdminContent', 'HomeController@displayAdminContent');
 
 Route::post('/generateCSVAdmins', 'HomeController@generateCSVAdmins');
+
+Route::get('/confirmBuyAll', 'HomeController@confirmBuyAll');
