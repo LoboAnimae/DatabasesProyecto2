@@ -107,3 +107,12 @@ Route::post('/buyAll', 'HomeController@buyAll');
 Route::post('/simulateSales', 'HomeController@simulateSales');
 
 Route::post('/reproduce', 'HomeController@reproduce');
+
+Route::get('/adminStats', function () {
+    $data_type = 0;
+    return view('adminStats', compact('data_type'));
+});
+
+Route::post('/displayAdminContent', 'HomeController@displayAdminContent');
+
+Route::post('/generateCSVAdmins', 'HomeController@generateCSVAdmins');

@@ -38,6 +38,38 @@ Pages that can be gone to through here:
 @endsection
 
 @section('beginningSection')
+    @if($roleValue == 'SuperUser')
+        <style>
+            .adminNavBar {
+                position: fixed;
+                top: 0;
+                margin: 0 50vw 0 50vw;
+                width: 10vw;
+                height: 30px;
+                background-color: #aaa;
+                z-index: 100;
+                min-width: fit-content;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            #statistics {
+                cursor: pointer;
+            }
+        </style>
+
+        <div class="adminNavBar">
+            <div id="statistics">View Statistics</div>
+        </div>
+        <script>
+            const stats = document.getElementById('statistics')
+
+            stats.addEventListener('click', () => {
+                window.location = '/adminStats'
+            })
+        </script>
+    @endif
     <section class="articles">
         <article class="article1">
             <button id="search"

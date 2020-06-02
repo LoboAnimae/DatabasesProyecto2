@@ -465,7 +465,50 @@ class HomeController extends Controller
         $invoice = DB::table("invoice")->get();
         $csvExporter = new Export();
         $csvExporter->build($invoice, ['invoiceid', 'customerid', 'invoicedate', 'billingaddress', 'billingcity', 'billingstate', 'billingcountry', 'billingpostalcode', 'total'])->download();
+
     }
+
+    public function generateCSVAdmins(Request $request)
+    {
+        $request_type = $request->download;
+
+        if ($request_type == 1) {
+            $dateOne = $request->firstDate;
+            $dateTwo = $request->secondDate;
+            $find_sales = DB::select('SELECT * FROM showData(?, ?)', array($dateOne, $dateTwo));
+            $find_sales = collect($find_sales);
+            $csvExporter = new Export();
+            $csvExporter->build($find_sales, ['year_number', 'month_number', 'week_number', 'total_sales'])->download();
+
+        } else if ($request_type == 2) {
+            $dateOne = $request->firstDate;
+            $dateTwo = $request->secondDate;
+            $limiter = $request->limiter;
+            $find_artist = DB::select('SELECT * FROM bestArtists(?, ?, ?)', array($dateOne, $dateTwo, $limiter));
+            $find_artist = collect($find_artist);
+            $csvExporter = new Export();
+            $csvExporter->build($find_artist, ['id', 'artist_name', 'total_sales'])->download();
+
+        } else if ($request_type == 3) {
+            $dateOne = $request->firstDate;
+            $dateTwo = $request->secondDate;
+            $find_genre = DB::select('SELECT * FROM bestGenres(?, ?)', array($dateOne, $dateTwo));
+            $find_genre = collect($find_genre);
+            $csvExporter = new Export();
+            $csvExporter->build($find_genre, ['genre_name', 'total_sales'])->download();
+
+        } else if ($request_type == 4) {
+            $artistName = $request->artist;
+            $limiter = (int)$request->limiter;
+            $queue_artist = DB::select('SELECT * FROM bestTracks(?, ?)', array($artistName, $limiter));
+            $queue_artist = collect($queue_artist);
+            $csvExporter = new Export();
+            $csvExporter->build($queue_artist, ['album_title', 'track_title', 'reproduced'])->download();
+
+        }
+
+    }
+
 
     /**
      * Adds a new entry to the database for artist, album or track
@@ -1355,4 +1398,66 @@ class HomeController extends Controller
 
         return redirect($link->url);
     }
+
+    public function displayAdminContent(Request $request)
+    {
+        $request_type = $request->select_category;
+
+
+        if ($request_type == 'total_sales') {
+            $dateOne = $request->fd;
+            $dateTwo = $request->sd;
+            $data_type = 1;
+
+            $find_sales = DB::select('SELECT * FROM showData(?, ?)', array($dateOne, $dateTwo));
+            if ($find_sales != null) {
+                return view('adminStats', compact('find_sales', 'data_type', 'dateOne', 'dateTwo'));
+            } else {
+                return redirect('/adminStats');
+            }
+
+        } else if ($request_type == 'artists_number') {
+            $dateOne = $request->fd;
+            $dateTwo = $request->sd;
+            $limiter = (int)$request->limiter;
+            $data_type = 2;
+
+            $find_artist = DB::select('SELECT * FROM bestArtists(?, ?, ?)', array($dateOne, $dateTwo, $limiter));
+
+            if ($find_artist != null) {
+                return view('adminStats', compact('find_artist', 'data_type', 'dateOne', 'dateTwo', 'limiter'));
+            } else {
+                return redirect('/adminStats');
+            }
+        } else if ($request_type == 'genre_total') {
+            $dateOne = $request->fd;
+            $dateTwo = $request->sd;
+            $data_type = 3;
+
+            $find_genre = DB::select('SELECT * FROM bestGenres(?, ?)', array($dateOne, $dateTwo));
+
+            if ($find_genre != null) {
+                return view('adminStats', compact('find_genre', 'data_type', 'dateOne', 'dateTwo'));
+            } else {
+                return redirect('/adminStats');
+            }
+        } else if ($request_type == 'tracks_by_artist') {
+            $artistName = $request->fd;
+            $limiter = (int)$request->sd;
+            $data_type = 4;
+
+            $queue_artist = DB::select('SELECT * FROM bestTracks(?, ?)', array($artistName, $limiter));
+            if ($queue_artist != null) {
+                return view('adminStats', compact('queue_artist', 'data_type', 'artistName', 'limiter'));
+            } else {
+                return redirect('/adminStats');
+            }
+
+        } else if ($request_type == 'empty') {
+            return redirect('/adminStats');
+        }
+        return redirect('/adminStats');
+    }
+
+
 }
