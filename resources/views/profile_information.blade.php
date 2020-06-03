@@ -46,16 +46,28 @@ Pages that can be gone to through here:
                 margin: 0 50vw 0 50vw;
                 width: 10vw;
                 height: 30px;
-                background-color: #aaa;
                 z-index: 100;
                 min-width: fit-content;
                 display: flex;
-                justify-content: space-between;
+
                 align-items: center;
+                background-color: white;
+                text-align: center;
+
+                justify-content: center;
+                border-bottom-left-radius: 20px;
+                border-bottom-right-radius: 20px;
+                transition: all 1s;
             }
+
+            .adminNavBar:hover {
+                transform: scale(1.4);
+            }
+
 
             #statistics {
                 cursor: pointer;
+                color: #3b3a3b;
             }
         </style>
 
@@ -73,7 +85,7 @@ Pages that can be gone to through here:
     <section class="articles">
         <article class="article1">
             <button id="search"
-                    style="margin: 0;padding: 10px;border: 0;box-shadow: 5px 10px 30px #888888;;left: 50%;background: #3B3A3B;color: white;width: 300px;height: 50px;font-size: 20px;overflow: hidden;transition: .6s;position: relative;top: 0%;">
+                    style="margin: 0;padding: 10px;border: 0;box-shadow: 5px 10px 30px white;left: 50%;background: #3B3A3B;color: white;width: 300px;height: 50px;font-size: 20px;overflow: hidden;transition: .6s;position: relative;top: 0%;">
                 Search
             </button>
             <button class="boton1" id="upload">Upload</button>
@@ -84,7 +96,7 @@ Pages that can be gone to through here:
                 <button class="boton6" id="userChanges">Erase Users</button>
                 <button class="boton7" id="changeRoles">Change User Roles</button>
                 <button class="boton8" id="updateInfo">Change Some Info</button>
-                <button class="boton9" id="cvsPage">Generate Invoice CVS</button>
+                <button class="boton9" id="cvsPage">Generate Recommendations</button>
                 <button class="boton10" id="changeLog">Check the Changelog</button>
                 <div class="inputContainer">
                     <form id="simulationForm" action="{{ action('HomeController@simulateSales') }}" method="POST">

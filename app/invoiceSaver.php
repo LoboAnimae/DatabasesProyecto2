@@ -8,6 +8,4 @@ class invoiceSaver extends Eloquent
 {
     protected $connection = 'mongodb';
     protected $collection = 'sales';
-
-
 }

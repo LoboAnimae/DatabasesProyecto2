@@ -464,9 +464,10 @@ class HomeController extends Controller
      */
     public function generateCSV()
     {
-        $invoice = DB::table("invoice")->get();
+        $recommendations = DB::select('SELECT * FROM recommend_me');
+        $recommendations = collect($recommendations);
         $csvExporter = new Export();
-        $csvExporter->build($invoice, ['invoiceid', 'customerid', 'invoicedate', 'billingaddress', 'billingcity', 'billingstate', 'billingcountry', 'billingpostalcode', 'total'])->download();
+        $csvExporter->build($recommendations, ['userid', 'given_genre', 'name'])->download();
 
     }
 
@@ -1153,7 +1154,6 @@ class HomeController extends Controller
 
         $mongoUser = shoppingCart::where('username', '=', $username)->get();
         $mongoSaver = shoppingCart::where('username', '=', $username)->get();
-
         $pdfCreated = app('App\Http\Controllers\PDFController')->pdf($mongoSaver);
 
         $mongoSales = new invoiceSaver();
@@ -1161,6 +1161,7 @@ class HomeController extends Controller
         foreach ($mongoUser as $sale) {
             $mongoSales->user = $username;
             $mongoSales->track = $sale->trackid;
+            $mongoSales->save();
         }
 
         foreach ($mongoUser as $info) {
