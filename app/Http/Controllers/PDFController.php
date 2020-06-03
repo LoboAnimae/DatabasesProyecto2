@@ -9,6 +9,12 @@ use Carbon\Carbon;
 
 class PDFController extends Controller
 {
+    /**
+     * Generates a new PDF Stream
+     *
+     * @param $mongoSaver
+     * @return mixed
+     */
     function pdf($mongoSaver)
     {
         $pdf = App::make('dompdf.wrapper');
@@ -17,6 +23,12 @@ class PDFController extends Controller
         return $pdf->stream();
     }
 
+    /**
+     * Creates a PDF Info
+     *
+     * @param $mongoSaver
+     * @return string
+     */
     public function convert_to_pdf($mongoSaver)
     {
         $sum = 0.0;
