@@ -20,6 +20,7 @@ use Illuminate\Contracts\View\Factory;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -464,13 +465,19 @@ class HomeController extends Controller
      */
     public function generateCSV()
     {
-        $recommendations = DB::select('SELECT * FROM recommend_me');
-        $recommendations = collect($recommendations);
+        $most_listened = DB::select('SELECT * FROM recommend_me');
+        $most_listened = collect($most_listened);
         $csvExporter = new Export();
-        $csvExporter->build($recommendations, ['userid', 'given_genre', 'name'])->download();
+        $csvExporter->build($most_listened, ['userid', 'given_genre', 'name'])->download();
 
     }
 
+    /**
+     * Creates a new info CSV for the Admins
+     *
+     * @param Request $request
+     * @throws CannotInsertRecord
+     */
     public function generateCSVAdmins(Request $request)
     {
         $request_type = $request->download;
@@ -1131,6 +1138,12 @@ class HomeController extends Controller
         return true;
     }
 
+    /**
+     * Tries to delete a shopping cart track
+     *
+     * @param int $trackid
+     * @return RedirectResponse
+     */
     public function deleteFromShoppingCartMakeshift(int $trackid)
     {
         $user = Auth::user();
@@ -1172,6 +1185,11 @@ class HomeController extends Controller
         return $pdfCreated;
     }
 
+    /**
+     * Buys ALL from the shopping cart
+     *
+     * @return Application|Factory|View
+     */
     public function BuyAll()
     {
         $user = Auth::user();
@@ -1283,6 +1301,12 @@ class HomeController extends Controller
     }
 
 
+    /**
+     * Simulates the sales for a given date
+     *
+     * @param Request $request
+     * @return Exception|QueryException|RedirectResponse
+     */
     public function simulateSales(Request $request)
     {
 
@@ -1407,6 +1431,12 @@ class HomeController extends Controller
         return redirect()->action('HomeController@profile');
     }
 
+    /**
+     * Gives a new "reproduced" value to a track
+     *
+     * @param Request $request
+     * @return Exception|Application|QueryException|RedirectResponse|Redirector
+     */
     public function reproduce(Request $request)
     {
         $user = Auth::user();
@@ -1430,6 +1460,12 @@ class HomeController extends Controller
         return redirect($link->url);
     }
 
+    /**
+     * Returns the view for the Admin Content
+     *
+     * @param Request $request
+     * @return Application|Factory|RedirectResponse|Redirector|View
+     */
     public function displayAdminContent(Request $request)
     {
         $request_type = $request->select_category;
